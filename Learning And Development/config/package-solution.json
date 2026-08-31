@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "learnining-and-development-client-side-solution",
+    "id": "440066a5-47c8-4c09-882b-f9763960a0ba",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.23.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "learnining-and-development description"
+      },
+      "longDescription": {
+        "default": "learnining-and-development description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "learnining-and-development Feature",
+        "description": "The feature that activates elements of the learnining-and-development solution.",
+        "id": "e41962f2-2d6c-4d4f-8ebc-269995fd0b4c",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/learnining-and-development.sppkg"
+  }
+}

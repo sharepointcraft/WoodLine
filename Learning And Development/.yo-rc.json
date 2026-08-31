@@ -1,0 +1,19 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "useGulp": false,
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.22.0",
+    "sdksVersions": {},
+    "version": "1.23.2",
+    "libraryName": "learnining-and-development",
+    "libraryId": "440066a5-47c8-4c09-882b-f9763960a0ba",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "learnining-and-development",
+    "solutionShortDescription": "learnining-and-development description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
