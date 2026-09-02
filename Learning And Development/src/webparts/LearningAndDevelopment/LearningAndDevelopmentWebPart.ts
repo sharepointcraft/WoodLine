@@ -3,32 +3,40 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneToggle
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
 
-import * as strings from 'LearniningAndDevelopmentWebPartStrings';
-import LearniningAndDevelopment from './components/LearniningAndDevelopment';
-import { ILearniningAndDevelopmentProps } from './components/ILearniningAndDevelopmentProps';
+import * as strings from 'learningAndDevelopmentWebPartStrings';
+import LearningAndDevelopment from './components/LearningAndDevelopment';
+import { ILearningAndDevelopmentProps } from './components/ILearningAndDevelopmentProps';
 
-export interface ILearniningAndDevelopmentWebPartProps {
+export interface ILearningAndDevelopmentWebPartProps {
   description: string;
+  libraryTitle: string;
+  useMockData: boolean;
+  videoExtensions: string;
 }
 
-export default class LearniningAndDevelopmentWebPart extends BaseClientSideWebPart<ILearniningAndDevelopmentWebPartProps> {
+export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart<ILearningAndDevelopmentWebPartProps> {
 
   private _isDarkTheme: boolean = false;
   private _environmentMessage: string = '';
 
   public render(): void {
-    const element: React.ReactElement<ILearniningAndDevelopmentProps> = React.createElement(
-      LearniningAndDevelopment,
+    const element: React.ReactElement<ILearningAndDevelopmentProps> = React.createElement(
+      LearningAndDevelopment,
       {
-        description: this.properties.description,
+        description: this.properties.description || 'Learning & Development Video Portal',
+        libraryTitle: this.properties.libraryTitle || 'Documents',
+        useMockData: this.properties.useMockData !== undefined ? this.properties.useMockData : false,
+        videoExtensions: this.properties.videoExtensions || 'mp4,mov,wmv,avi,webm,mkv,m4v',
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
-        userDisplayName: this.context.pageContext.user.displayName
+        userDisplayName: this.context.pageContext?.user?.displayName || 'User',
+        context: this.context
       }
     );
 
@@ -41,28 +49,25 @@ export default class LearniningAndDevelopmentWebPart extends BaseClientSideWebPa
     });
   }
 
-
-
   private _getEnvironmentMessage(): Promise<string> {
-    if (!!this.context.sdks.microsoftTeams) { // running in Teams, office.com or Outlook
+    if (!!this.context.sdks.microsoftTeams) {
       return this.context.sdks.microsoftTeams.teamsJs.app.getContext()
         .then(context => {
           let environmentMessage: string = '';
           switch (context.app.host.name) {
-            case 'Office': // running in Office
+            case 'Office':
               environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentOffice : strings.AppOfficeEnvironment;
               break;
-            case 'Outlook': // running in Outlook
+            case 'Outlook':
               environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentOutlook : strings.AppOutlookEnvironment;
               break;
-            case 'Teams': // running in Teams
+            case 'Teams':
             case 'TeamsModern':
               environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentTeams : strings.AppTeamsTabEnvironment;
               break;
             default:
               environmentMessage = strings.UnknownEnvironment;
           }
-
           return environmentMessage;
         });
     }
@@ -76,16 +81,13 @@ export default class LearniningAndDevelopmentWebPart extends BaseClientSideWebPa
     }
 
     this._isDarkTheme = !!currentTheme.isInverted;
-    const {
-      semanticColors
-    } = currentTheme;
+    const { semanticColors } = currentTheme;
 
     if (semanticColors) {
       this.domElement.style.setProperty('--bodyText', semanticColors.bodyText || null);
       this.domElement.style.setProperty('--link', semanticColors.link || null);
       this.domElement.style.setProperty('--linkHovered', semanticColors.linkHovered || null);
     }
-
   }
 
   protected onDispose(): void {
@@ -109,6 +111,19 @@ export default class LearniningAndDevelopmentWebPart extends BaseClientSideWebPa
               groupFields: [
                 PropertyPaneTextField('description', {
                   label: strings.DescriptionFieldLabel
+                }),
+                PropertyPaneTextField('libraryTitle', {
+                  label: 'Document Library Title',
+                  description: 'Name of the SharePoint document library containing learning folders (default: Documents)'
+                }),
+                PropertyPaneToggle('useMockData', {
+                  label: 'Use Demo Data',
+                  onText: 'Enabled (Demo Mode)',
+                  offText: 'Disabled (Live SharePoint Data)'
+                }),
+                PropertyPaneTextField('videoExtensions', {
+                  label: 'Video File Extensions',
+                  description: 'Comma-separated video file extensions to display'
                 })
               ]
             }
