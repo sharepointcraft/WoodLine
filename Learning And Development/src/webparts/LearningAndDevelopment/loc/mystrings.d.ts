@@ -1,4 +1,4 @@
-declare interface ILearniningAndDevelopmentWebPartStrings {
+declare interface IlearningAndDevelopmentWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
   DescriptionFieldLabel: string;
@@ -13,7 +13,7 @@ declare interface ILearniningAndDevelopmentWebPartStrings {
   UnknownEnvironment: string;
 }
 
-declare module 'LearniningAndDevelopmentWebPartStrings' {
-  const strings: ILearniningAndDevelopmentWebPartStrings;
+declare module 'learningAndDevelopmentWebPartStrings' {
+  const strings: IlearningAndDevelopmentWebPartStrings;
   export = strings;
 }
