@@ -1,6 +1,6 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-import { ILearningCollection, IVideoSession, ILearningStats, IUpcomingEventItem } from '../models/ILearningModels';
+import { ILearningCollection, IVideoSession, ILearningStats, IUpcomingEventItem, IQuickLinkItem } from '../models/ILearningModels';
 
 interface ISpFolderItem {
   Name?: string;
@@ -70,86 +70,137 @@ export class SpService {
    */
   public async getTopLevelFolders(
     libraryTitle: string = 'Documents',
-    useMock: boolean = false
+    useMock: boolean = false,
+    allowedExtensions: string[] = ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v']
   ): Promise<ILearningCollection[]> {
+    if (libraryTitle !== undefined && libraryTitle.trim() === '') {
+      return [];
+    }
+
+    let collections: ILearningCollection[] = [];
+
     if (useMock || this.isLocalEnvironment()) {
-      return this.getMockCollections().filter((c) => c.isActive !== false);
-    }
+      collections = this.getMockCollections().filter((c) => c.isActive !== false);
+    } else {
+      try {
+        const webUrl = this.context.pageContext.web.absoluteUrl;
 
-    try {
-      const webUrl = this.context.pageContext.web.absoluteUrl;
+        // Dynamically resolve the Document Library Display Title on this site
+        const resolvedTitle = await this.getLibraryListTitle(webUrl, libraryTitle);
 
-      // Dynamically resolve the Document Library Display Title on this site
-      const resolvedTitle = await this.getLibraryListTitle(webUrl, libraryTitle);
+        // Method 1: Query List Items where FSObjType eq 1 (Folders) with $expand=Folder
+        const itemsEndpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
+          resolvedTitle
+        )}')/items?$filter=FSObjType eq 1&$expand=Folder`;
 
-      // Method 1: Query List Items where FSObjType eq 1 (Folders) with $expand=Folder
-      const itemsEndpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
-        resolvedTitle
-      )}')/items?$filter=FSObjType eq 1&$expand=Folder`;
+        const response: SPHttpClientResponse = await this.context.spHttpClient.get(
+          itemsEndpoint,
+          SPHttpClient.configurations.v1
+        );
 
-      const response: SPHttpClientResponse = await this.context.spHttpClient.get(
-        itemsEndpoint,
-        SPHttpClient.configurations.v1
-      );
+        if (response.ok) {
+          const data: { value?: ISpFolderItem[] } = await response.json();
+          const rawItems: ISpFolderItem[] = data.value || [];
 
-      if (response.ok) {
-        const data: { value?: ISpFolderItem[] } = await response.json();
-        const rawItems: ISpFolderItem[] = data.value || [];
-
-        const activeFolders = rawItems.filter((item) => {
-          const folderName = item.FileLeafRef || item.Name || item.Folder?.Name || '';
-          if (!folderName || folderName === 'Forms' || folderName.startsWith('_') || folderName.startsWith('.')) {
-            return false;
-          }
-          return this.isFolderActive(item);
-        });
-
-        if (activeFolders.length > 0) {
-          return activeFolders.map((f, index) => {
-            const folderName = f.FileLeafRef || f.Name || f.Folder?.Name || `Folder ${index + 1}`;
-            const serverUrl = f.FileRef || f.ServerRelativeUrl || f.Folder?.ServerRelativeUrl || '';
-            const description =
-              f.Description ||
-              f.Comments ||
-              `Collection of learning sessions for ${folderName}. Explore videos and training materials.`;
-
-            return {
-              id: serverUrl || `col-${index}`,
-              title: f.Title || folderName,
-              description: description,
-              serverRelativeUrl: serverUrl,
-              itemCount: f.ItemChildCount || f.ItemCount || f.Folder?.ItemCount || 0,
-              createdDate: this.formatDate(f.Created || f.TimeCreated || ''),
-              modifiedDate: this.formatDate(f.Modified || f.TimeLastModified || ''),
-              category: f.Category || this.getRandomCategory(folderName),
-              bannerUrl: this.getCategoryBanner(folderName, index),
-              author: 'L&D Team',
-              isActive: true
-            };
+          const activeFolders = rawItems.filter((item) => {
+            const folderName = item.FileLeafRef || item.Name || item.Folder?.Name || '';
+            if (!folderName || folderName === 'Forms' || folderName.startsWith('_') || folderName.startsWith('.')) {
+              return false;
+            }
+            return this.isFolderActive(item);
           });
-        }
-      }
 
-      // Method 2 Fallback: Folder Endpoint query
-      return await this.getFoldersByFolderEndpoint(libraryTitle);
-    } catch (err) {
-      console.warn('[L&D Portal] Method 1 list item query exception, falling back:', err);
-      return await this.getFoldersByFolderEndpoint(libraryTitle);
+          if (activeFolders.length > 0) {
+            collections = activeFolders.map((f, index) => {
+              const folderName = f.FileLeafRef || f.Name || f.Folder?.Name || `Folder ${index + 1}`;
+              const serverUrl = f.FileRef || f.ServerRelativeUrl || f.Folder?.ServerRelativeUrl || '';
+              const description =
+                f.Description ||
+                f.Comments ||
+                `Collection of learning sessions for ${folderName}. Explore videos and training materials.`;
+
+              return {
+                id: serverUrl || `col-${index}`,
+                title: f.Title || folderName,
+                description: description,
+                serverRelativeUrl: serverUrl,
+                itemCount: 0,
+                createdDate: this.formatDate(f.Created || f.TimeCreated || ''),
+                modifiedDate: this.formatDate(f.Modified || f.TimeLastModified || ''),
+                category: f.Category || this.getRandomCategory(folderName),
+                bannerUrl: this.getCategoryBanner(folderName, index),
+                author: 'L&D Team',
+                isActive: true
+              };
+            });
+          }
+        }
+
+        if (collections.length === 0) {
+          collections = await this.getFoldersByFolderEndpoint(libraryTitle);
+        }
+      } catch (err) {
+        console.warn('[L&D Portal] Method 1 list item query exception, falling back:', err);
+        collections = await this.getFoldersByFolderEndpoint(libraryTitle);
+      }
     }
+
+    // Update itemCount to count ONLY video files (excluding PDFs & other non-video documents)
+    const collectionsWithVideoCounts = await Promise.all(
+      collections.map(async (col) => {
+        try {
+          const videoSessions = await this.getVideoSessionsInFolder(
+            col.serverRelativeUrl,
+            allowedExtensions,
+            useMock
+          );
+          return {
+            ...col,
+            itemCount: videoSessions.length
+          };
+        } catch {
+          return col;
+        }
+      })
+    );
+
+    return collectionsWithVideoCounts;
   }
 
   /**
-   * Retrieves upcoming events from the 'UpcomingEvents' SharePoint list.
+   * Retrieves upcoming events from the configured SharePoint list (default 'UpcomingEvents').
    * Filters: Active = Yes, EventDate/EndDate >= Today, sorted by EventDate ascending.
    */
-  public async getUpcomingEvents(useMock: boolean = false): Promise<IUpcomingEventItem[]> {
+  public async getUpcomingEvents(
+    listName: string = '',
+    useMock: boolean = false
+  ): Promise<IUpcomingEventItem[]> {
+    if (!listName || !listName.trim()) {
+      return [];
+    }
+
     if (useMock || this.isLocalEnvironment()) {
       return this.getMockUpcomingEvents();
     }
 
     try {
       const webUrl = this.context.pageContext.web.absoluteUrl;
-      const endpoint = `${webUrl}/_api/web/lists/getByTitle('UpcomingEvents')/items?$select=Id,Title,EventDate,EndDate,EventUrl,EventURL,Location,Active&$orderby=EventDate asc`;
+      const targetListName = listName.trim();
+
+      // Pre-flight check: verify list exists without throwing a 404 (returns 200 OK with value: [])
+      const checkEndpoint = `${webUrl}/_api/web/lists?$filter=Title eq '${encodeURIComponent(targetListName)}'&$select=Title`;
+      const checkRes = await this.context.spHttpClient.get(checkEndpoint, SPHttpClient.configurations.v1);
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        if (!checkData.value || checkData.value.length === 0) {
+          console.log(`[L&D Portal] List '${targetListName}' does not exist on site.`);
+          return [];
+        }
+      }
+
+      const endpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
+        targetListName
+      )}')/items?$select=Id,Title,EventDate,EndDate,EventURL,EventUrl,Location,Active&$orderby=EventDate asc`;
 
       const response: SPHttpClientResponse = await this.context.spHttpClient.get(
         endpoint,
@@ -157,7 +208,7 @@ export class SpService {
       );
 
       if (!response.ok) {
-        return this.getMockUpcomingEvents();
+        return [];
       }
 
       const data: { value?: ISpEventItem[] } = await response.json();
@@ -198,7 +249,7 @@ export class SpService {
       });
 
       return validEvents.map((evt) => {
-        const rawUrl = evt.EventUrl || evt.EventURL;
+        const rawUrl = evt.EventURL || evt.EventUrl;
         let urlStr: string | undefined;
         if (typeof rawUrl === 'string') {
           urlStr = rawUrl;
@@ -217,8 +268,89 @@ export class SpService {
         };
       });
     } catch (err) {
-      console.warn('[L&D Portal] Failed to fetch UpcomingEvents from SharePoint list, using mock:', err);
-      return this.getMockUpcomingEvents();
+      console.warn('[L&D Portal] Failed to fetch UpcomingEvents from SharePoint list:', err);
+      return [];
+    }
+  }
+
+  /**
+   * Retrieves quick links from the configured SharePoint list.
+   */
+  public async getQuickLinks(
+    listName: string = '',
+    useMock: boolean = false
+  ): Promise<IQuickLinkItem[]> {
+    if (!listName || !listName.trim()) {
+      return [];
+    }
+    if (useMock || this.isLocalEnvironment()) {
+      return [];
+    }
+
+    try {
+      const webUrl = this.context.pageContext.web.absoluteUrl;
+      const targetListName = listName.trim();
+
+      // Pre-flight check: verify list exists without throwing a 404 (returns 200 OK with value: [])
+      const checkEndpoint = `${webUrl}/_api/web/lists?$filter=Title eq '${encodeURIComponent(targetListName)}'&$select=Title`;
+      const checkRes = await this.context.spHttpClient.get(checkEndpoint, SPHttpClient.configurations.v1);
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        if (!checkData.value || checkData.value.length === 0) {
+          console.log(`[L&D Portal] QuickLinks List '${targetListName}' does not exist on site.`);
+          return [];
+        }
+      }
+
+      const endpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
+        targetListName
+      )}')/items?$select=Id,Title,URL,Url,LinkUrl,Description,Active`;
+
+      const response: SPHttpClientResponse = await this.context.spHttpClient.get(
+        endpoint,
+        SPHttpClient.configurations.v1
+      );
+
+      if (!response.ok) {
+        return [];
+      }
+
+      const data: { value?: any[] } = await response.json();
+      const rawItems: any[] = data.value || [];
+
+      return rawItems
+        .filter((item) => {
+          if (
+            item.Active === false ||
+            item.Active === 'false' ||
+            item.Active === 'No' ||
+            item.Active === 0 ||
+            item.Active === null ||
+            item.Active === undefined
+          ) {
+            return false;
+          }
+          return true;
+        })
+        .map((item, index) => {
+          const rawUrl = item.URL || item.Url || item.LinkUrl;
+          let urlStr = '#';
+          if (typeof rawUrl === 'string') {
+            urlStr = rawUrl;
+          } else if (rawUrl && typeof rawUrl === 'object' && rawUrl.Url) {
+            urlStr = rawUrl.Url;
+          }
+
+          return {
+            id: item.Id ? item.Id.toString() : `ql-${index}`,
+            title: item.Title || 'Resource Link',
+            url: urlStr,
+            description: item.Description
+          };
+        });
+    } catch (err) {
+      console.warn('[L&D Portal] Failed to fetch QuickLinks from SharePoint list:', err);
+      return [];
     }
   }
 
@@ -412,10 +544,8 @@ export class SpService {
     const folderName = item.FileLeafRef || item.Name || item.Folder?.Name || 'Folder';
     console.log(`[L&D Portal] Checking Active column for folder "${folderName}":`, activeVal);
 
-    // Rule: Exclude folder if Active is null, undefined, false, "No", or 0!
+    // Rule: Exclude folder ONLY if Active column is explicitly false, "No", or 0!
     if (
-      activeVal === null ||
-      activeVal === undefined ||
       activeVal === false ||
       activeVal === 'false' ||
       activeVal === 'False' ||
@@ -424,19 +554,11 @@ export class SpService {
       activeVal === 0 ||
       activeVal === '0'
     ) {
-      return false; // Do not show folder
+      return false; // Explicitly inactive
     }
 
-    // Only show if Active is explicitly true / Yes / 1 / "true"
-    return (
-      activeVal === true ||
-      activeVal === 'true' ||
-      activeVal === 'True' ||
-      activeVal === 'Yes' ||
-      activeVal === 'yes' ||
-      activeVal === 1 ||
-      activeVal === '1'
-    );
+    // Include folder by default if Active is Yes/true OR if the column is not present (undefined/null)
+    return true;
   }
 
   /**
@@ -516,18 +638,14 @@ export class SpService {
    */
   public async getLibraryStats(
     libraryTitle: string = 'Documents',
-    useMock: boolean = false
+    useMock: boolean = false,
+    allowedExtensions: string[] = ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v']
   ): Promise<ILearningStats> {
-    const collections = await this.getTopLevelFolders(libraryTitle, useMock);
+    const collections = await this.getTopLevelFolders(libraryTitle, useMock, allowedExtensions);
 
     let totalSessionsSum = 0;
     for (const col of collections) {
-      if (col.itemCount !== undefined && col.itemCount >= 0) {
-        totalSessionsSum += col.itemCount;
-      } else {
-        const sessions = await this.getVideoSessionsInFolder(col.serverRelativeUrl, undefined, useMock);
-        totalSessionsSum += sessions.length;
-      }
+      totalSessionsSum += col.itemCount;
     }
 
     return {
