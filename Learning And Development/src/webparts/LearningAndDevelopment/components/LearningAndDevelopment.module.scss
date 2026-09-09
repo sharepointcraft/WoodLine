@@ -1362,134 +1362,191 @@
    7. REDESIGNED LEARNING SESSION DETAIL PAGE STYLES
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   COLOR PALETTE & DESIGN TOKENS (USER SPECIFIED)
+   -------------------------------------------------------------------------- */
+$navy: #00205c;
+$navy-light: #1e4d7b;
+$gold: #d6cd8d;
+$cream: #f7f5eb;
+$white: #ffffff;
+
+$text: #00205c;
+$gray: #707070;
+$border: #ded9bd;
+
+/* Outer full-width container for the session detail subpage (warm cream background) */
+.sessionSubpage {
+  width: 100%;
+  min-height: 100vh;
+  background-color: $cream;
+  /* #f7f5eb: Warm cream background matching reference */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   7.1 HERO HEADER SECTION (Blue Gradient Banner)
+   -------------------------------------------------------------------------- */
 .heroSection {
-  background: linear-gradient(105deg, #061b48 0%, #08295c 45%, #234e7d 100%);
-  color: #ffffff;
-  min-height: 390px;
-  padding: 60px 48px 80px 48px;
+  background: linear-gradient(105deg, $navy 0%, #0a2d68 45%, $navy-light 100%);
+  /* Blue gradient header based on palette */
+  color: $white;
+  padding: 48px 64px 60px 64px;
   position: relative;
   width: 100%;
   box-sizing: border-box;
 
+  /* Pill outline button to navigate back to collections list */
   .backButton {
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-    padding: 8px 18px;
+    color: $white;
+    padding: 7px 18px;
     border-radius: 9999px;
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     transition: all 0.2s ease;
     margin-bottom: 24px;
+    letter-spacing: 0.3px;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: $white;
     }
   }
 
+  /* Golden uppercase category tag above collection title */
   .heroLabel {
-    color: #D6CD8D;
+    color: $gold;
+    /* #d6cd8d */
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.6px;
     text-transform: uppercase;
     margin-bottom: 12px;
   }
 
+  /* Main collection title in elegant serif typography */
   h1 {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 42px;
-    font-weight: 400;
+    font-size: 46px;
+    font-weight: 500;
     margin: 0 0 16px 0;
-    color: #ffffff;
-    line-height: 1.2;
+    color: $white;
+    line-height: 1.15;
   }
 
+  /* Collection description text */
   p {
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 15px;
-    color: #d0d7de;
-    max-width: 720px;
+    color: #cad5e2;
+    /* Soft muted tint */
+    max-width: 780px;
     line-height: 1.6;
-    margin: 0 0 28px 0;
+    margin: 0 0 24px 0;
   }
 
+  /* Session count badge pill */
   .sessionCount {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid rgba(214, 205, 141, 0.5);
-    padding: 6px 14px;
-    border-radius: 6px;
-    background: rgba(6, 27, 72, 0.6);
+    border: 1px solid $gold;
+    /* #d6cd8d */
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: rgba(0, 32, 92, 0.55);
 
     strong {
-      color: #D6CD8D;
-      font-size: 14px;
+      color: $gold;
+      /* #d6cd8d */
+      font-size: 15px;
       font-weight: 700;
+      font-family: Georgia, 'Times New Roman', serif;
     }
 
     span {
-      color: #ffffff;
-      font-size: 13px;
+      color: $white;
+      font-size: 12px;
+      font-weight: 400;
     }
   }
 }
 
+/* --------------------------------------------------------------------------
+   7.2 MAIN CONTENT WRAPPER (Full-Width, Zero Top Gap)
+   -------------------------------------------------------------------------- */
 .contentWrapper {
-  padding: 0 64px 64px 64px;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
   box-sizing: border-box;
+  padding: 0 64px 80px 64px;
+  /* 0 top padding: completely eliminates the gap above the filter panel */
+  margin: 0 auto;
 }
 
+/* --------------------------------------------------------------------------
+   7.3 AVAILABLE SESSIONS FILTER PANEL (Exact After Header, Does Not Override Header)
+   -------------------------------------------------------------------------- */
 .filterPanel {
-  background: #ffffff;
-  border-radius: 10px;
+  background: $white;
+  /* #ffffff: Crisp white filter card */
+  border-radius: 12px;
   padding: 20px 28px;
-  margin-top: -36px;
-  margin-bottom: 40px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  margin-top: 0;
+  /* Exact after header, does NOT override or overlap the header */
+  margin-bottom: 36px;
+  box-shadow: 0 4px 18px rgba(0, 32, 92, 0.07);
+  border: 1px solid $border;
+  /* #ded9bd: User-specified border */
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
   z-index: 10;
-  border: 1px solid #e1e4e8;
   flex-wrap: wrap;
   gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
 
+  /* Left title and sort label */
   .availableSessions {
     display: flex;
     align-items: baseline;
-    gap: 16px;
+    gap: 14px;
 
     .availableTitle {
       font-family: Georgia, 'Times New Roman', serif;
       font-size: 24px;
-      color: #061b48;
-      font-weight: 400;
+      color: $text;
+      /* #00205c */
+      font-weight: 500;
     }
 
     .newestText {
-      color: #b09e65;
+      color: #8c7f3b;
+      /* Gold indicator */
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
     }
   }
 
+  /* Right filter controls group (Year, Month, Search) */
   .filters {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
     flex-wrap: wrap;
 
+    /* Year & Month dropdown filter group */
     .filterGroup {
       display: flex;
       flex-direction: column;
@@ -1498,29 +1555,35 @@
       label {
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: 1px;
-        color: #061b48;
+        letter-spacing: 0.8px;
+        color: $text;
+        /* #00205c */
         text-transform: uppercase;
       }
 
       select {
-        border: 1px solid #d0d7de;
+        border: 1px solid $border;
+        /* #ded9bd */
         border-radius: 6px;
         padding: 8px 32px 8px 12px;
         font-size: 13px;
-        color: #24292f;
-        background: #ffffff url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2324292f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 8px center;
-        background-size: 14px;
+        color: $text;
+        /* #00205c */
+        background: $white url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300205c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 10px center;
+        background-size: 12px;
         appearance: none;
         cursor: pointer;
         outline: none;
+        min-width: 120px;
+        transition: border-color 0.2s ease;
 
         &:focus {
-          border-color: #061b48;
+          border-color: $navy-light;
         }
       }
     }
 
+    /* Keyword search input filter group */
     .filterGroupSearch {
       display: flex;
       flex-direction: column;
@@ -1529,8 +1592,9 @@
       label {
         font-size: 10px;
         font-weight: 700;
-        letter-spacing: 1px;
-        color: #061b48;
+        letter-spacing: 0.8px;
+        color: $text;
+        /* #00205c */
         text-transform: uppercase;
       }
 
@@ -1540,58 +1604,69 @@
         align-items: center;
 
         input {
-          border: 1px solid #d0d7de;
+          border: 1px solid $border;
+          /* #ded9bd */
           border-radius: 6px;
-          padding: 8px 32px 8px 12px;
+          padding: 8px 12px;
           font-size: 13px;
-          color: #24292f;
-          width: 200px;
+          color: $text;
+          /* #00205c */
+          width: 190px;
           outline: none;
+          transition: border-color 0.2s ease;
+
+          &::placeholder {
+            color: $gray;
+            /* #707070 */
+          }
 
           &:focus {
-            border-color: #061b48;
+            border-color: $navy-light;
           }
-        }
-
-        .searchIcon {
-          position: absolute;
-          right: 10px;
-          font-size: 12px;
-          color: #57606a;
-          pointer-events: none;
         }
       }
     }
   }
 }
 
+/* --------------------------------------------------------------------------
+   7.4 EMPTY STATE / NO RESULTS DISPLAY
+   -------------------------------------------------------------------------- */
 .noResults {
   text-align: center;
   padding: 60px 20px;
-  background: #ffffff;
-  border-radius: 10px;
-  border: 1px dashed #d0d7de;
+  background: $white;
+  border-radius: 12px;
+  border: 1px dashed $border;
 
   h3 {
     font-size: 18px;
-    color: #061b48;
+    color: $text;
     margin: 0 0 8px 0;
+    font-family: Georgia, 'Times New Roman', serif;
   }
 
   p {
     font-size: 14px;
-    color: #57606a;
+    color: $gray;
     margin: 0;
   }
 }
 
+/* --------------------------------------------------------------------------
+   7.5 SESSIONS CONTAINER & YEAR GROUPINGS (HORIZONTAL & VERTICAL LINES)
+   -------------------------------------------------------------------------- */
 .sessionsContainer {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 44px;
+  width: 100%;
 }
 
 .yearSection {
+  margin-bottom: 12px;
+
+  /* Year Heading with large serif year and full-width horizontal divider rule */
   .yearHeading {
     display: flex;
     align-items: center;
@@ -1600,198 +1675,265 @@
 
     h2 {
       font-family: Georgia, 'Times New Roman', serif;
-      font-size: 32px;
-      color: #061b48;
+      font-size: 36px;
+      color: $text;
+      /* #00205c */
       font-weight: 400;
       margin: 0;
     }
 
+    /* Horizontal line across the year header - 2px thick matching timelineVerticalLine */
     .yearLine {
       flex: 1;
-      height: 1px;
-      background-color: #e2d9b7;
+      height: 2px;
+      background-color: $border;
+      /* #ded9bd: Same line style & color as vertical line */
+      border-radius: 2px;
+    }
+  }
+
+  /* Year Timeline Container: Vertical line on the left + Month sections on the right */
+  .yearTimelineContainer {
+    display: flex;
+    gap: 24px;
+    position: relative;
+    width: 100%;
+
+    /* Vertical timeline line extending down on the left side */
+    .timelineVerticalLine {
+      width: 2px;
+      background-color: $border;
+      /* #ded9bd: Exact border color */
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Months list container inside the year */
+    .yearMonthsList {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      min-width: 0;
     }
   }
 }
 
+/* --------------------------------------------------------------------------
+   7.6 MONTH GROUPING & 3-COLUMN SESSIONS GRID
+   -------------------------------------------------------------------------- */
 .monthSection {
-  margin-bottom: 32px;
+  width: 100%;
 
+  /* Month title on the left and session count badge on the right */
   .monthHeading {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 
     h3 {
       font-family: Georgia, 'Times New Roman', serif;
-      font-size: 20px;
-      color: #061b48;
+      font-size: 22px;
+      color: $text;
+      /* #00205c */
       font-weight: 400;
       margin: 0;
     }
 
     span {
-      color: #b09e65;
+      color: #8c7f3b;
+      /* Golden uppercase session count tag */
       font-size: 11px;
       font-weight: 700;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
     }
   }
 
+  /* Container for 3-column session cards grid */
   .monthContent {
-    display: flex;
-    gap: 24px;
-
-    .monthVerticalLine {
-      width: 2px;
-      background-color: #b09e65;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
+    width: 100%;
 
     .sessionGrid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
+      /* 3 cards per row matching reference */
       gap: 24px;
-      flex: 1;
+      width: 100%;
+      box-sizing: border-box;
     }
   }
 }
 
+/* --------------------------------------------------------------------------
+   7.7 SESSION CARD COMPONENT STYLES (COMPACT PROPORTIONS MATCHING DESIGN)
+   -------------------------------------------------------------------------- */
 .sessionCard {
-  background: #ffffff;
+  background: $white;
+  /* Clean white card container */
   border-radius: 8px;
+  /* Compact border radius matching reference */
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e1e4e8;
+  box-shadow: 0 3px 10px rgba(0, 32, 92, 0.04);
+  border: 1px solid $border;
+  /* #ded9bd: User specified border */
   display: flex;
   flex-direction: column;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 32, 92, 0.08);
   }
 
+  /* Compact video thumbnail banner with blue gradient */
   .videoArea {
-    height: 160px;
-    background: linear-gradient(135deg, #0b2559 0%, #061b48 100%);
+    height: 112px;
+    /* Compact 16:9 banner height */
+    background: linear-gradient(135deg, $navy 0%, $navy-light 100%);
+    /* Blue gradient thumbnail header */
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
 
+    /* Compact centered white circular play button */
     .playButton {
-      width: 48px;
-      height: 48px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: #ffffff;
+      background: $white;
       border: none;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
       transition: transform 0.2s ease;
 
       &:hover {
-        transform: scale(1.1);
+        transform: scale(1.08);
       }
 
+      /* Dark navy play triangle pointing right */
       .playIcon {
         width: 0;
         height: 0;
         border-style: solid;
-        border-width: 8px 0 8px 14px;
-        border-color: transparent transparent transparent #061b48;
-        margin-left: 3px;
+        border-width: 5px 0 5px 9px;
+        border-color: transparent transparent transparent $text;
+        margin-left: 2px;
       }
     }
 
+    /* Compact video duration badge in top-right corner */
     .duration {
       position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(6, 27, 72, 0.8);
-      color: #ffffff;
-      font-size: 11px;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 32, 92, 0.85);
+      color: $white;
+      font-size: 10px;
       font-weight: 600;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 2px 6px;
+      border-radius: 3px;
     }
   }
 
+  /* Compact card content body */
   .cardContent {
-    padding: 20px;
+    padding: 12px 14px 14px 14px;
+    /* Compact padding */
     display: flex;
     flex-direction: column;
     flex: 1;
 
+    /* Session title in serif typography */
     .sessionTitle {
-      font-size: 16px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 14px;
       font-weight: 600;
-      color: #061b48;
-      margin: 0 0 8px 0;
-      line-height: 1.4;
+      color: $text;
+      /* #00205c */
+      margin: 0 0 4px 0;
+      line-height: 1.3;
       cursor: pointer;
+      transition: color 0.15s ease;
 
       &:hover {
-        color: #0056b3;
+        color: $navy-light;
       }
     }
 
+    /* Collection title & created date subtitle */
     .sessionDate {
-      font-size: 12px;
-      color: #57606a;
-      margin-bottom: 12px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      color: $gray;
+      /* #707070 */
+      margin-bottom: 8px;
     }
 
+    /* Views and Comments stats row matching design mockup */
     .sessionStats {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: #8c959f;
-      margin-bottom: 20px;
+      gap: 12px;
+      font-size: 10px;
+      color: $gray;
+      /* #707070 */
+      margin-bottom: 12px;
 
-      .separator {
-        font-size: 8px;
+      .statItem {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+
+        .statIcon {
+          font-size: 11px;
+          color: $gray;
+          /* #707070 */
+        }
       }
     }
 
+    /* Compact "Open recording ->" button in deep navy */
     .recordingButton {
       margin-top: auto;
-      background: #061b48;
-      color: #ffffff;
+      background-color: $text;
+      /* #00205c */
+      color: $white;
       border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      justify-content: space-between;
-      transition: background 0.2s ease;
+      gap: 6px;
       width: fit-content;
+      transition: background 0.2s ease;
 
       &:hover {
-        background: #0b2559;
+        background-color: $navy-light;
       }
 
       .buttonArrow {
-        margin-left: 8px;
+        font-size: 11px;
       }
     }
   }
 }
 
+/* --------------------------------------------------------------------------
+   7.8 RESPONSIVE MEDIA QUERIES
+   -------------------------------------------------------------------------- */
 @media screen and (max-width: 1024px) {
   .heroSection {
-    padding: 40px 32px 64px 32px;
+    padding: 40px 32px 48px 32px;
   }
 
   .contentWrapper {
@@ -1802,6 +1944,7 @@
     .monthContent {
       .sessionGrid {
         grid-template-columns: repeat(2, 1fr);
+        /* 2 columns on tablet screens */
       }
     }
   }
@@ -1809,7 +1952,7 @@
 
 @media screen and (max-width: 768px) {
   .heroSection {
-    padding: 32px 20px 56px 20px;
+    padding: 32px 20px 40px 20px;
 
     h1 {
       font-size: 32px;
@@ -1817,7 +1960,7 @@
   }
 
   .contentWrapper {
-    padding: 0 20px 32px 20px;
+    padding: 0 20px 36px 20px;
   }
 
   .filterPanel {
@@ -1839,16 +1982,22 @@
     }
   }
 
+  .yearSection {
+    .yearTimelineContainer {
+      gap: 16px;
+
+      .timelineVerticalLine {
+        display: none;
+        /* Hide vertical line on narrow mobile view */
+      }
+    }
+  }
+
   .monthSection {
     .monthContent {
-      flex-direction: column;
-
-      .monthVerticalLine {
-        display: none;
-      }
-
       .sessionGrid {
         grid-template-columns: 1fr;
+        /* 1 column on mobile screens */
       }
     }
   }

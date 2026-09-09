@@ -11,6 +11,11 @@ export interface ISessionFiltersProps {
   onSearchChange: (search: string) => void;
 }
 
+/**
+ * SessionFilters Component
+ * Renders the filter card with "Available Sessions", "NEWEST TO OLDEST" label,
+ * and filter controls for Year, Month, and Search keyword.
+ */
 export const SessionFilters: React.FC<ISessionFiltersProps> = ({
   filterState,
   availableYears,
@@ -21,6 +26,7 @@ export const SessionFilters: React.FC<ISessionFiltersProps> = ({
 }) => {
   return (
     <div className={styles.filterPanel}>
+      {/* LEFT: TITLE & SORT INDICATOR */}
       <div className={styles.availableSessions}>
         <span className={styles.availableTitle}>
           Available Sessions
@@ -30,8 +36,9 @@ export const SessionFilters: React.FC<ISessionFiltersProps> = ({
         </span>
       </div>
 
+      {/* RIGHT: FILTER CONTROLS */}
       <div className={styles.filters}>
-        {/* YEAR FILTER */}
+        {/* 1. YEAR FILTER DROPDOWN */}
         <div className={styles.filterGroup}>
           <label htmlFor="yearFilter">YEAR</label>
           <select
@@ -48,7 +55,7 @@ export const SessionFilters: React.FC<ISessionFiltersProps> = ({
           </select>
         </div>
 
-        {/* MONTH FILTER */}
+        {/* 2. MONTH FILTER DROPDOWN */}
         <div className={styles.filterGroup}>
           <label htmlFor="monthFilter">MONTH</label>
           <select
@@ -65,7 +72,7 @@ export const SessionFilters: React.FC<ISessionFiltersProps> = ({
           </select>
         </div>
 
-        {/* SEARCH FILTER */}
+        {/* 3. SEARCH INPUT BOX */}
         <div className={styles.filterGroupSearch}>
           <label htmlFor="sessionSearch">SEARCH</label>
           <div className={styles.searchBox}>
@@ -76,10 +83,10 @@ export const SessionFilters: React.FC<ISessionFiltersProps> = ({
               value={filterState.sessionSearch}
               onChange={(e) => onSearchChange(e.target.value)}
             />
-            <span className={styles.searchIcon}>🔍</span>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
