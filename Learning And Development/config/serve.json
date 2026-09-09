@@ -2,10 +2,6 @@
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/spfx-serve.schema.json",
   "port": 4321,
   "https": true,
-<<<<<<< HEAD
-  "initialPage": "https://realitytechhub.sharepoint.com/_layouts/workbench.aspx"
-}
-=======
-  "initialPage": "https://realitytechhub.sharepoint.com/sites/Woodline_LearningandDevelopmentCenter/_layouts/workbench.aspx"
+  "initialPage": "https://realitytechhub.sharepoint.com/sites/Woodline_LearningandDevelopmentCenter/SitePages/Home.aspx?loadSPFX=true&debugManifestsFile=https://localhost:4321/temp/manifests.js"
 }
 >>>>>>> f49e99a47651224ea2c47a21cbcb1e3ee9a48483
