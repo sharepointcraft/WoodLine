@@ -16,6 +16,8 @@ import { ILearningAndDevelopmentProps } from './components/ILearningAndDevelopme
 export interface ILearningAndDevelopmentWebPartProps {
   description: string;
   libraryTitle: string;
+  quickLinksListName: string;
+  upcomingEventsListName: string;
   useMockData: boolean;
   videoExtensions: string;
 }
@@ -31,6 +33,8 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
       {
         description: this.properties.description || 'Learning & Development Video Portal',
         libraryTitle: this.properties.libraryTitle || 'Documents',
+        quickLinksListName: this.properties.quickLinksListName || '',
+        upcomingEventsListName: this.properties.upcomingEventsListName || '',
         useMockData: this.properties.useMockData !== undefined ? this.properties.useMockData : false,
         videoExtensions: this.properties.videoExtensions || 'mp4,mov,wmv,avi,webm,mkv,m4v',
         isDarkTheme: this._isDarkTheme,
@@ -115,6 +119,14 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
                 PropertyPaneTextField('libraryTitle', {
                   label: 'Document Library Title',
                   description: 'Name of the SharePoint document library containing learning folders (default: Documents)'
+                }),
+                PropertyPaneTextField('quickLinksListName', {
+                  label: 'Quick Links List Name',
+                  description: 'Name of the SharePoint list for Resources & Quick Links (default: QuickLinks)'
+                }),
+                PropertyPaneTextField('upcomingEventsListName', {
+                  label: 'Upcoming Events List Name',
+                  description: 'Name of the SharePoint list for Upcoming Events (default: UpcomingEvents)'
                 }),
                 PropertyPaneToggle('useMockData', {
                   label: 'Use Demo Data',

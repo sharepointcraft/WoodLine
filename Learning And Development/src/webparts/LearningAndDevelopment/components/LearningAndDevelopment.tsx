@@ -2,21 +2,74 @@ import * as React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import styles from './LearningAndDevelopment.module.scss';
 import { ILearningAndDevelopmentProps } from './ILearningAndDevelopmentProps';
-import { FilterBar } from './FilterBar';
 import {
   ILearningCollection,
   IVideoSession,
   IFilterState,
   ILearningStats,
   IUpcomingEventItem,
+  IQuickLinkItem,
   ViewMode
 } from '../models/ILearningModels';
 import { SpService } from '../services/SpService';
+import { HeroSection } from './HeroSection';
+import { AlphabetFilterBar } from './AlphabetFilterBar';
+import { CollectionCard } from './CollectionCard';
+import { ResourcesPanel } from './ResourcesPanel';
+import { UpcomingEventsPanel } from './UpcomingEventsPanel';
+import { SessionFilters } from './SessionFilters';
 import { SessionCard } from './SessionCard';
 import { VideoPlayerModal } from './VideoPlayerModal';
 import { Icon } from '@fluentui/react/lib/Icon';
 
-const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const getMonthNumber = (monthStr: string): number => {
+  const index = MONTH_NAMES.findIndex(
+    (m) => m.toLowerCase() === monthStr.toLowerCase()
+  );
+  return index === -1 ? 99 : index;
+};
+
+const getSessionYear = (session: IVideoSession): string => {
+  if (session.year && session.year !== 'Year not specified' && session.year !== 'All') {
+    return session.year;
+  }
+  if (session.createdDate) {
+    const parts = session.createdDate.split('-');
+    if (parts.length >= 1 && parts[0].length === 4) {
+      return parts[0];
+    }
+    const dateObj = new Date(session.createdDate);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj.getFullYear().toString();
+    }
+  }
+  return 'Year not specified';
+};
+
+const getSessionMonth = (session: IVideoSession): string => {
+  if (session.month && session.month !== 'Month not specified' && session.month !== 'All') {
+    return session.month;
+  }
+  if (session.createdDate) {
+    const parts = session.createdDate.split('-');
+    if (parts.length >= 2) {
+      const monthNum = parseInt(parts[1], 10);
+      if (monthNum >= 1 && monthNum <= 12) {
+        return MONTH_NAMES[monthNum - 1];
+      }
+    }
+    const dateObj = new Date(session.createdDate);
+    if (!isNaN(dateObj.getTime())) {
+      return MONTH_NAMES[dateObj.getMonth()];
+    }
+  }
+  return 'Month not specified';
+};
 
 const INITIAL_FILTERS: IFilterState = {
   folderSearch: '',
@@ -28,45 +81,15 @@ const INITIAL_FILTERS: IFilterState = {
   sessionSort: 'newest'
 };
 
-const formatEventDisplayDate = (eventDateStr: string, endDateStr?: string): string => {
-  try {
-    const start = new Date(eventDateStr);
-    if (isNaN(start.getTime())) return eventDateStr;
-
-    const startFormatted = start.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-
-    const timeFormatted = start.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-
-    const isAllDay = start.getHours() === 0 && start.getMinutes() === 0;
-
-    if (endDateStr) {
-      const end = new Date(endDateStr);
-      if (!isNaN(end.getTime()) && end.toDateString() !== start.toDateString()) {
-        const endFormatted = end.toLocaleDateString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric'
-        });
-        return `${startFormatted} - ${endFormatted}`;
-      }
-    }
-
-    return isAllDay ? `${startFormatted} • All Day` : `${startFormatted} at ${timeFormatted}`;
-  } catch {
-    return eventDateStr;
-  }
-};
-
 const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) => {
-  const { libraryTitle, useMockData, videoExtensions, context } = props;
+  const {
+    libraryTitle = 'Documents',
+    quickLinksListName = '',
+    upcomingEventsListName = '',
+    useMockData,
+    videoExtensions,
+    context
+  } = props;
 
   const spService = useMemo(() => new SpService(context), [context]);
 
@@ -74,6 +97,7 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
   const [selectedCollection, setSelectedCollection] = useState<ILearningCollection | undefined>(undefined);
   const [sessions, setSessions] = useState<IVideoSession[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<IUpcomingEventItem[]>([]);
+  const [quickLinks, setQuickLinks] = useState<IQuickLinkItem[]>([]);
   const [stats, setStats] = useState<ILearningStats>({ totalCollections: 0, totalSessions: 0 });
   const [viewMode, setViewMode] = useState<ViewMode>('collections');
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -87,20 +111,26 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
     setError(undefined);
 
     try {
-      const fetchedCollections = await spService.getTopLevelFolders(libraryTitle, useMockData);
-      const fetchedStats = await spService.getLibraryStats(libraryTitle, useMockData);
-      const fetchedEvents = await spService.getUpcomingEvents(useMockData);
+      const allowedExts = videoExtensions
+        ? videoExtensions.split(',').map((s: string) => s.trim())
+        : ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v'];
+
+      const fetchedCollections = await spService.getTopLevelFolders(libraryTitle, useMockData, allowedExts);
+      const fetchedStats = await spService.getLibraryStats(libraryTitle, useMockData, allowedExts);
+      const fetchedEvents = await spService.getUpcomingEvents(upcomingEventsListName, useMockData);
+      const fetchedQuickLinks = await spService.getQuickLinks(quickLinksListName, useMockData);
 
       setCollections(fetchedCollections);
       setStats(fetchedStats);
       setUpcomingEvents(fetchedEvents);
+      setQuickLinks(fetchedQuickLinks);
       setIsLoading(false);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load Learning Collections from SharePoint library.';
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [libraryTitle, useMockData, spService]);
+  }, [libraryTitle, quickLinksListName, upcomingEventsListName, useMockData, videoExtensions, spService]);
 
   useEffect(() => {
     loadPortalData().catch(() => { });
@@ -131,48 +161,54 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
 
       setSessions(fetchedSessions);
       setIsLoading(false);
-    } catch {
-      setError(`Could not retrieve video sessions for "${collection.title}".`);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load video sessions for this collection.';
+      setError(errorMessage);
       setIsLoading(false);
     }
-  }, [spService, videoExtensions, useMockData]);
+  }, [videoExtensions, useMockData, spService]);
 
   const handleBackToCollections = useCallback((): void => {
-    setSelectedCollection(undefined);
     setViewMode('collections');
+    setSelectedCollection(undefined);
     setSessions([]);
-  }, []);
-
-  const handleFilterChange = useCallback((newFilters: Partial<IFilterState>): void => {
-    setFilterState((prev) => ({ ...prev, ...newFilters }));
   }, []);
 
   const filteredCollections = useMemo(() => {
     let list = [...collections];
 
-    if (filterState.folderSearch) {
+    if (filterState.folderSearch.trim()) {
       const query = filterState.folderSearch.toLowerCase().trim();
       list = list.filter(
         (c) =>
           c.title.toLowerCase().indexOf(query) !== -1 ||
-          c.description.toLowerCase().indexOf(query) !== -1 ||
-          (c.category && c.category.toLowerCase().indexOf(query) !== -1)
+          (c.description && c.description.toLowerCase().indexOf(query) !== -1)
       );
     }
 
-    if (filterState.folderAlpha && filterState.folderAlpha !== 'All') {
-      const char = filterState.folderAlpha.toLowerCase();
-      list = list.filter((c) => c.title.toLowerCase().startsWith(char));
+    if (filterState.folderAlpha !== 'All') {
+      list = list.filter(
+        (c) =>
+          c.title &&
+          c.title.charAt(0).toUpperCase() === filterState.folderAlpha.toUpperCase()
+      );
     }
 
-    list.sort((a, b) => a.title.localeCompare(b.title));
+    list.sort((a, b) => {
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+      return filterState.folderSort === 'asc'
+        ? titleA.localeCompare(titleB)
+        : titleB.localeCompare(titleA);
+    });
+
     return list;
-  }, [collections, filterState.folderSearch, filterState.folderAlpha]);
+  }, [collections, filterState.folderSearch, filterState.folderAlpha, filterState.folderSort]);
 
   const filteredSessions = useMemo(() => {
     let list = [...sessions];
 
-    if (filterState.sessionSearch) {
+    if (filterState.sessionSearch.trim()) {
       const query = filterState.sessionSearch.toLowerCase().trim();
       list = list.filter(
         (s) =>
@@ -183,12 +219,12 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
     }
 
     if (filterState.sessionYear && filterState.sessionYear !== 'All') {
-      list = list.filter((s) => s.year === filterState.sessionYear);
+      list = list.filter((s) => getSessionYear(s) === filterState.sessionYear);
     }
 
     if (filterState.sessionMonth && filterState.sessionMonth !== 'All') {
       list = list.filter(
-        (s) => s.month.toLowerCase() === filterState.sessionMonth.toLowerCase()
+        (s) => getSessionMonth(s).toLowerCase() === filterState.sessionMonth.toLowerCase()
       );
     }
 
@@ -203,6 +239,60 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
 
     return list;
   }, [sessions, filterState.sessionSearch, filterState.sessionYear, filterState.sessionMonth, filterState.sessionSort]);
+
+  // Distinct Years for Dropdown Filter
+  const availableYears = useMemo(() => {
+    const set = new Set<string>();
+    sessions.forEach((s) => {
+      const y = getSessionYear(s);
+      if (y && y !== 'Year not specified') set.add(y);
+    });
+    return Array.from(set).sort((a, b) => Number(b) - Number(a));
+  }, [sessions]);
+
+  // Distinct Months for Dropdown Filter
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    sessions.forEach((s) => {
+      const m = getSessionMonth(s);
+      if (m && m !== 'Month not specified') set.add(m);
+    });
+    return Array.from(set).sort((a, b) => getMonthNumber(a) - getMonthNumber(b));
+  }, [sessions]);
+
+  // Group filtered sessions by Year
+  const groupedByYear = useMemo(() => {
+    const grouped: { [year: string]: IVideoSession[] } = {};
+    filteredSessions.forEach((session) => {
+      const year = getSessionYear(session);
+      if (!grouped[year]) {
+        grouped[year] = [];
+      }
+      grouped[year].push(session);
+    });
+    return grouped;
+  }, [filteredSessions]);
+
+  const yearKeys = useMemo(() => {
+    const keys = Object.keys(groupedByYear);
+    return keys.sort((a, b) => {
+      if (a === 'Year not specified') return 1;
+      if (b === 'Year not specified') return -1;
+      return Number(b) - Number(a);
+    });
+  }, [groupedByYear]);
+
+  const groupVideosByMonth = (videos: IVideoSession[]): { [month: string]: IVideoSession[] } => {
+    const grouped: { [month: string]: IVideoSession[] } = {};
+    videos.forEach((video) => {
+      const month = getSessionMonth(video);
+      if (!grouped[month]) {
+        grouped[month] = [];
+      }
+      grouped[month].push(video);
+    });
+    return grouped;
+  };
 
   const activeLetters = useMemo(() => {
     const set = new Set<string>();
@@ -237,83 +327,30 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
 
   return (
     <section className={styles.learningAndDevelopment}>
-      {/* 1. HERO SECTION */}
-      <header className={styles.learningHero}>
-        <div className={styles.heroContent}>
-          <div className={styles.navigationPath}>
-            WOODLINE WEB / EDUCATE / LEARNING &amp; DEVELOPMENT
-          </div>
+      {viewMode === 'collections' ? (
+        <>
+          {/* 1. HERO SECTION (COLLECTIONS PAGE) */}
+          <HeroSection stats={stats} />
 
-          <h1 className={styles.title}>
-            Learning &amp; Development Center
-          </h1>
+          {/* 2. ALPHABETICAL FILTER BAR */}
+          <AlphabetFilterBar
+            selectedLetter={filterState.folderAlpha}
+            activeLetters={activeLetters}
+            onSelectLetter={handleAlphaClick}
+          />
 
-          <p className={styles.description}>
-            Build knowledge, sharpen skills, and access the training, insights, and resources that support your development at Woodline.
-          </p>
-
-          <div className={styles.stats}>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>{stats.totalCollections}</span>
-              <span className={styles.statLabel}>
-                {stats.totalCollections === 1 ? 'Collection' : 'Collections'}
-              </span>
-            </div>
-            <div className={styles.statCard}>
-              <span className={styles.statNumber}>{stats.totalSessions}</span>
-              <span className={styles.statLabel}>
-                {stats.totalSessions === 1 ? 'Session' : 'Sessions'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* 2. ALPHABETICAL FILTER BAR */}
-      <nav className={styles.Filter} aria-label="Alphabetical Filter">
-        <div className={styles.FilterContainer}>
-          <span className={styles.FilterLabel}>Browse by A-Z</span>
-          <div className={styles.alphabetTrack}>
-            <button
-              type="button"
-              className={`${styles.letterButton} ${filterState.folderAlpha === 'All' ? styles.active : ''}`}
-              onClick={() => handleAlphaClick('All')}
-            >
-              All
-            </button>
-            {ALPHABET.map((letter) => {
-              const isActive = filterState.folderAlpha === letter;
-              const hasItems = activeLetters.has(letter);
-              return (
-                <button
-                  key={letter}
-                  type="button"
-                  disabled={!hasItems}
-                  className={`${styles.letterButton} ${isActive ? styles.active : ''} ${!hasItems ? styles.disabled : ''}`}
-                  onClick={() => handleAlphaClick(letter)}
-                >
-                  {letter}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
-
-      {/* 3. MAIN CONTENT SECTION */}
-      <section className={styles.librarySection}>
-        <div className={styles.libraryContainer}>
-          {/* LEFT COLUMN: LEARNING COLLECTIONS OR SESSIONS */}
-          <div className={styles.libraryContent}>
-            {/* SEARCH & BREADCRUMB HEADER */}
-            <div className={styles.libraryHeader}>
-              {viewMode === 'collections' ? (
-                <>
+          {/* 3. MAIN CONTENT SECTION */}
+          <section className={styles.librarySection}>
+            <div className={styles.libraryContainer}>
+              {/* LEFT COLUMN: LEARNING COLLECTIONS */}
+              <div className={styles.libraryContent}>
+                <div className={styles.libraryHeader}>
                   <h2 className={styles.libraryTitle}>Learning Collections</h2>
                   <p className={styles.librarySubtitle}>
                     Browse by department or topic to access curated training materials and session recordings.
                   </p>
 
+                  {/* SEARCH ROW */}
                   <div className={styles.searchRow}>
                     <div className={styles.searchBoxWrapper}>
                       <Icon iconName="Search" className={styles.searchIcon} />
@@ -345,36 +382,122 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                       </button>
                     )}
                   </div>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className={styles.backNavBtn}
-                    onClick={handleBackToCollections}
-                  >
-                    <Icon iconName="Back" /> Back to Collections
-                  </button>
+                </div>
 
-                  <h2 className={styles.libraryTitle}>
-                    {selectedCollection?.title}
-                  </h2>
-                  <p className={styles.librarySubtitle}>
-                    {selectedCollection?.description}
-                  </p>
+                {/* ERROR DISPLAY */}
+                {error && (
+                  <div className={styles.errorContainer}>
+                    <Icon iconName="ErrorBadge" className={styles.errorIcon} />
+                    <span>{error}</span>
+                  </div>
+                )}
 
-                  <FilterBar
-                    filterState={filterState}
-                    onFilterChange={handleFilterChange}
-                    viewMode="sessions"
-                  />
-                </>
-              )}
+                {/* LOADING SPINNER */}
+                {isLoading && (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.spinner} />
+                    <p>Loading learning collections...</p>
+                  </div>
+                )}
+
+                {/* FOLDER COLLECTIONS GRID */}
+                {!isLoading && (
+                  <>
+                    {filteredCollections.length > 0 ? (
+                      <div className={styles.collectionGrid}>
+                        {filteredCollections.map((collection) => (
+                          <CollectionCard
+                            key={collection.id}
+                            collection={collection}
+                            onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyStateContainer}>
+                        <Icon iconName="SearchData" className={styles.emptyIcon} />
+                        <h3>No Learning Collections Found</h3>
+                        <p>No collections match your search or letter filter.</p>
+                        <button
+                          type="button"
+                          className={styles.primaryBtn}
+                          onClick={handleResetFilters}
+                        >
+                          Reset Filters
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN: RESOURCES & UPCOMING EVENTS */}
+              <div className={styles.rightColumn}>
+                {/* RESOURCES & DOCUMENTS PANEL */}
+                <ResourcesPanel
+                  collections={collections}
+                  quickLinks={quickLinks}
+                  onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+                />
+
+                {/* UPCOMING EVENTS PANEL */}
+                <UpcomingEventsPanel events={upcomingEvents} />
+              </div>
             </div>
+          </section>
+        </>
+      ) : (
+        /* =========================================================
+           SESSION PAGE UI (REDESIGNED LEARNING SESSION DETAIL PAGE)
+           ========================================================= */
+        <div className={styles.learningAndDevelopment}>
+          {/* HERO HEADER SECTION */}
+          <div className={styles.heroSection}>
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={handleBackToCollections}
+            >
+              <span>&larr;</span> Back to Learning Library
+            </button>
+
+            <div className={styles.heroLabel}>
+              LEARNING COLLECTION
+            </div>
+
+            <h1>
+              {selectedCollection?.title || 'Analysts'}
+            </h1>
+
+            <p>
+              {selectedCollection?.description || 'Browse video training sessions, presentations, and learning resources.'}
+            </p>
+
+            <div className={styles.sessionCount}>
+              <strong>
+                {filteredSessions.length}
+              </strong>
+              <span>
+                {filteredSessions.length === 1 ? 'Session available' : 'Sessions available'}
+              </span>
+            </div>
+          </div>
+
+          {/* MAIN CONTENT WRAPPER */}
+          <div className={styles.contentWrapper}>
+            {/* FLOATING SESSION FILTER PANEL */}
+            <SessionFilters
+              filterState={filterState}
+              availableYears={availableYears}
+              availableMonths={availableMonths}
+              onYearChange={(year) => setFilterState((prev) => ({ ...prev, sessionYear: year }))}
+              onMonthChange={(month) => setFilterState((prev) => ({ ...prev, sessionMonth: month }))}
+              onSearchChange={(search) => setFilterState((prev) => ({ ...prev, sessionSearch: search }))}
+            />
 
             {/* ERROR DISPLAY */}
             {error && (
-              <div className={styles.errorContainer}>
+              <div className={styles.errorContainer} style={{ marginTop: '20px' }}>
                 <Icon iconName="ErrorBadge" className={styles.errorIcon} />
                 <span>{error}</span>
               </div>
@@ -384,215 +507,75 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
             {isLoading && (
               <div className={styles.loadingContainer}>
                 <div className={styles.spinner} />
-                <p>Loading learning sessions...</p>
+                <p>Loading video sessions...</p>
               </div>
             )}
 
-            {/* FOLDER COLLECTIONS VIEW (4 CARDS PER ROW DESKTOP) */}
-            {!isLoading && viewMode === 'collections' && (
+            {/* VIDEO SESSIONS GROUPED BY YEAR AND MONTH */}
+            {!isLoading && (
               <>
-                {filteredCollections.length > 0 ? (
-                  <div className={styles.collectionGrid}>
-                    {filteredCollections.map((collection) => (
-                      <div
-                        key={collection.id}
-                        className={styles.collectionCard}
-                        onClick={() => { handleSelectCollection(collection).catch(() => { }); }}
-                      >
-                        <div className={styles.cardInner}>
-                          {/* CARD FRONT */}
-                          <div className={styles.cardFront}>
-                            <div className={styles.iconBox}>
-                              <Icon iconName="FolderOpen" />
-                            </div>
-
-                            <div className={styles.cardContent}>
-                              <h3 className={styles.cardTitle}>
-                                {collection.title}
-                              </h3>
-                              <p className={styles.sessionCount}>
-                                {collection.itemCount} {collection.itemCount === 1 ? 'session' : 'sessions'}
-                              </p>
-                            </div>
-
-                            <div className={styles.flipText}>
-                              Flip to explore
-                            </div>
-                          </div>
-
-                          {/* CARD BACK */}
-                          <div className={styles.cardBack}>
-                            <div className={styles.backLabel}>
-                              Learning Collection
-                            </div>
-
-                            <h3 className={styles.backTitle}>
-                              {collection.title}
-                            </h3>
-
-                            <p className={styles.backDescription}>
-                              {collection.description}
-                            </p>
-
-                            <div className={styles.backSessions}>
-                              {collection.itemCount} sessions to watch
-                            </div>
-
-                            <div className={styles.backAction}>
-                              Select to view video sessions &rarr;
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                {filteredSessions.length === 0 ? (
+                  <div className={styles.noResults}>
+                    <h3>No sessions found</h3>
+                    <p>Try changing the year, month, or search criteria.</p>
                   </div>
                 ) : (
-                  <div className={styles.emptyStateContainer}>
-                    <Icon iconName="SearchData" className={styles.emptyIcon} />
-                    <h3>No Learning Collections Found</h3>
-                    <p>No collections match your search or letter filter.</p>
-                    <button
-                      type="button"
-                      className={styles.primaryBtn}
-                      onClick={handleResetFilters}
-                    >
-                      Reset Filters
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* VIDEO SESSIONS VIEW */}
-            {!isLoading && viewMode === 'sessions' && (
-              <>
-                {filteredSessions.length > 0 ? (
-                  <div className={styles.sessionGridContainer}>
-                    {filteredSessions.map((session) => (
-                      <SessionCard
-                        key={session.id}
-                        session={session}
-                        onWatchVideo={handleWatchVideo}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className={styles.emptyStateContainer}>
-                    <Icon iconName="VideoOff" className={styles.emptyIcon} />
-                    <h3>No Video Sessions Found</h3>
-                    <p>No video files found in this collection matching your search.</p>
-                    <button
-                      type="button"
-                      className={styles.primaryBtn}
-                      onClick={() => setFilterState((prev) => ({ ...prev, sessionSearch: '' }))}
-                    >
-                      Clear Search
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* RIGHT COLUMN: RESOURCES & UPCOMING EVENTS */}
-          <div className={styles.rightColumn}>
-            {/* RESOURCES & DOCUMENTS PANEL (QUICK LINKS) */}
-            <aside className={styles.resourcesPanel}>
-              <h2 className={styles.resourcesTitle}>
-                Resources &amp; Documents
-              </h2>
-
-              <p className={styles.resourcesDescription}>
-                Open the learning resource areas from the Woodline Learning &amp; Development Center.
-              </p>
-
-              <div className={styles.resourceList}>
-                {collections.map((col) => (
-                  <button
-                    key={col.id}
-                    type="button"
-                    className={styles.resourceButton}
-                    onClick={() => { handleSelectCollection(col).catch(() => { }); }}
-                  >
-                    <span className={styles.resourceIcon} aria-hidden="true">
-                      <Icon iconName="OpenInNewWindow" />
-                    </span>
-                    <span className={styles.resourceText}>
-                      {col.title}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <div className={styles.resourcesFooter}>
-                <p>
-                  Links are draggable into supported browser tabs, messages and documents.
-                </p>
-              </div>
-            </aside>
-
-            {/* UPCOMING EVENTS PANEL */}
-            <div className={styles.eventsPanel}>
-              <h2 className={styles.eventsTitle}>
-                Upcoming Events
-              </h2>
-
-              <div className={styles.eventsList}>
-                {upcomingEvents.length > 0 ? (
-                  upcomingEvents.map((evt) => {
-                    const dateDisplay = formatEventDisplayDate(evt.eventDate, evt.endDate);
-
-                    if (evt.eventUrl) {
-                      return (
-                        <a
-                          key={evt.id}
-                          href={evt.eventUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={styles.eventItemLink}
-                        >
-                          <div className={styles.eventTitleRow}>
-                            <span className={styles.eventTitle}>{evt.title}</span>
-                            <Icon iconName="OpenInNewWindow" className={styles.eventLinkIcon} />
-                          </div>
-                          <div className={styles.eventDetails}>
-                            <span>{dateDisplay}</span>
-                            {evt.location && (
-                              <span className={styles.eventLocation}>
-                                <Icon iconName="Poi" /> {evt.location}
-                              </span>
-                            )}
-                          </div>
-                        </a>
+                  <div className={styles.sessionsContainer}>
+                    {yearKeys.map((year) => {
+                      const videosForYear = groupedByYear[year];
+                      const groupedByMonth = groupVideosByMonth(videosForYear);
+                      const monthKeys = Object.keys(groupedByMonth).sort(
+                        (a, b) => getMonthNumber(a) - getMonthNumber(b)
                       );
-                    }
 
-                    return (
-                      <div key={evt.id} className={styles.eventItemStatic}>
-                        <div className={styles.eventTitleRow}>
-                          <span className={styles.eventTitle}>{evt.title}</span>
+                      return (
+                        <div className={styles.yearSection} key={year}>
+                          {/* YEAR HEADING */}
+                          <div className={styles.yearHeading}>
+                            <h2>{year}</h2>
+                            <div className={styles.yearLine} />
+                          </div>
+
+                          {/* MONTH SECTIONS */}
+                          {monthKeys.map((month) => {
+                            const monthVideos = groupedByMonth[month];
+                            return (
+                              <div className={styles.monthSection} key={`${year}-${month}`}>
+                                {/* MONTH HEADING */}
+                                <div className={styles.monthHeading}>
+                                  <h3>{month}</h3>
+                                  <span>
+                                    {monthVideos.length} {monthVideos.length === 1 ? 'SESSION' : 'SESSIONS'}
+                                  </span>
+                                </div>
+
+                                {/* MONTH CONTENT */}
+                                <div className={styles.monthContent}>
+                                  <div className={styles.monthVerticalLine} />
+                                  <div className={styles.sessionGrid}>
+                                    {monthVideos.map((video) => (
+                                      <SessionCard
+                                        key={video.id}
+                                        video={video}
+                                        collectionTitle={selectedCollection?.title}
+                                        onWatchVideo={handleWatchVideo}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <div className={styles.eventDetails}>
-                          <span>{dateDisplay}</span>
-                          {evt.location && (
-                            <span className={styles.eventLocation}>
-                              <Icon iconName="Poi" /> {evt.location}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className={styles.eventEmpty}>
-                    No upcoming events scheduled at this time.
+                      );
+                    })}
                   </div>
                 )}
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
-      </section>
+      )}
 
       {/* VIDEO PLAYER MODAL */}
       <VideoPlayerModal

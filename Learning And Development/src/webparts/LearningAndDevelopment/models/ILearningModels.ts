@@ -39,6 +39,14 @@ export interface IUpcomingEventItem {
   isActive: boolean;
 }
 
+export interface IQuickLinkItem {
+  id: string;
+  title: string;
+  url?: string;
+  description?: string;
+  target?: string;
+}
+
 export interface IFilterState {
   folderSearch: string;
   folderAlpha: string; // 'All' | 'A' | 'B' ... 'Z'
