@@ -3,8 +3,7 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
-  PropertyPaneTextField,
-  PropertyPaneToggle
+  PropertyPaneTextField
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IReadonlyTheme } from '@microsoft/sp-component-base';
@@ -32,9 +31,9 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
       LearningAndDevelopment,
       {
         description: this.properties.description || 'Learning & Development Video Portal',
-        libraryTitle: this.properties.libraryTitle || 'Documents',
-        quickLinksListName: this.properties.quickLinksListName || '',
-        upcomingEventsListName: this.properties.upcomingEventsListName || '',
+        libraryTitle: this.properties.libraryTitle !== undefined ? this.properties.libraryTitle : '',
+        quickLinksListName: this.properties.quickLinksListName !== undefined ? this.properties.quickLinksListName : '',
+        upcomingEventsListName: this.properties.upcomingEventsListName !== undefined ? this.properties.upcomingEventsListName : '',
         useMockData: this.properties.useMockData !== undefined ? this.properties.useMockData : false,
         videoExtensions: this.properties.videoExtensions || 'mp4,mov,wmv,avi,webm,mkv,m4v',
         isDarkTheme: this._isDarkTheme,
@@ -118,21 +117,21 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
                 }),
                 PropertyPaneTextField('libraryTitle', {
                   label: 'Document Library Title',
-                  description: 'Name of the SharePoint document library containing learning folders (default: Documents)'
+                  description: 'Name of the SharePoint document library containing learning folders'
                 }),
                 PropertyPaneTextField('quickLinksListName', {
-                  label: 'Quick Links List Name',
-                  description: 'Name of the SharePoint list for Resources & Quick Links (default: QuickLinks)'
+                  label: 'Resources & Documents List Name',
+                  description: 'Name of the SharePoint list for Resources & Documents'
                 }),
                 PropertyPaneTextField('upcomingEventsListName', {
                   label: 'Upcoming Events List Name',
-                  description: 'Name of the SharePoint list for Upcoming Events (default: UpcomingEvents)'
+                  description: 'Name of the SharePoint list for Upcoming Events'
                 }),
-                PropertyPaneToggle('useMockData', {
-                  label: 'Use Demo Data',
-                  onText: 'Enabled (Demo Mode)',
-                  offText: 'Disabled (Live SharePoint Data)'
-                }),
+                // PropertyPaneToggle('useMockData', {
+                //   label: 'Use Demo Data',
+                //   onText: 'Enabled (Demo Mode)',
+                //   offText: 'Disabled (Live SharePoint Data)'
+                // }),
                 PropertyPaneTextField('videoExtensions', {
                   label: 'Video File Extensions',
                   description: 'Comma-separated video file extensions to display'

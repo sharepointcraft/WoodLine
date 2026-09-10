@@ -185,17 +185,11 @@ export class SpService {
 
     try {
       const webUrl = this.context.pageContext.web.absoluteUrl;
-      const targetListName = listName.trim();
+      const targetListName = await this.resolveListTitle(webUrl, listName);
 
-      // Pre-flight check: verify list exists without throwing a 404 (returns 200 OK with value: [])
-      const checkEndpoint = `${webUrl}/_api/web/lists?$filter=Title eq '${encodeURIComponent(targetListName)}'&$select=Title`;
-      const checkRes = await this.context.spHttpClient.get(checkEndpoint, SPHttpClient.configurations.v1);
-      if (checkRes.ok) {
-        const checkData = await checkRes.json();
-        if (!checkData.value || checkData.value.length === 0) {
-          console.log(`[L&D Portal] List '${targetListName}' does not exist on site.`);
-          return [];
-        }
+      if (!targetListName) {
+        console.log(`[L&D Portal] List '${listName}' does not exist on site.`);
+        return [];
       }
 
       const endpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
@@ -218,14 +212,12 @@ export class SpService {
       today.setHours(0, 0, 0, 0);
 
       const validEvents = rawEvents.filter((evt) => {
-        // Active check: Exclude if Active === false, 'No', 0, null, undefined
+        // Active check: Exclude ONLY if Active is explicitly false, 'No', or 0
         if (
           evt.Active === false ||
           evt.Active === 'false' ||
           evt.Active === 'No' ||
-          evt.Active === 0 ||
-          evt.Active === null ||
-          evt.Active === undefined
+          evt.Active === 0
         ) {
           return false;
         }
@@ -289,22 +281,16 @@ export class SpService {
 
     try {
       const webUrl = this.context.pageContext.web.absoluteUrl;
-      const targetListName = listName.trim();
+      const targetListName = await this.resolveListTitle(webUrl, listName);
 
-      // Pre-flight check: verify list exists without throwing a 404 (returns 200 OK with value: [])
-      const checkEndpoint = `${webUrl}/_api/web/lists?$filter=Title eq '${encodeURIComponent(targetListName)}'&$select=Title`;
-      const checkRes = await this.context.spHttpClient.get(checkEndpoint, SPHttpClient.configurations.v1);
-      if (checkRes.ok) {
-        const checkData = await checkRes.json();
-        if (!checkData.value || checkData.value.length === 0) {
-          console.log(`[L&D Portal] QuickLinks List '${targetListName}' does not exist on site.`);
-          return [];
-        }
+      if (!targetListName) {
+        console.log(`[L&D Portal] QuickLinks List '${listName}' does not exist on site.`);
+        return [];
       }
 
       const endpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
         targetListName
-      )}')/items?$select=Id,Title,URL,Url,LinkUrl,Description,Active`;
+      )}')/items`;
 
       const response: SPHttpClientResponse = await this.context.spHttpClient.get(
         endpoint,
@@ -324,16 +310,14 @@ export class SpService {
             item.Active === false ||
             item.Active === 'false' ||
             item.Active === 'No' ||
-            item.Active === 0 ||
-            item.Active === null ||
-            item.Active === undefined
+            item.Active === 0
           ) {
             return false;
           }
           return true;
         })
         .map((item, index) => {
-          const rawUrl = item.URL || item.Url || item.LinkUrl;
+          const rawUrl = item.URL || item.Url || item.LinkUrl || item.Link || item.Address || item.Hyperlink || item.WebPage || item.FileRef;
           let urlStr = '#';
           if (typeof rawUrl === 'string') {
             urlStr = rawUrl;
@@ -343,7 +327,7 @@ export class SpService {
 
           return {
             id: item.Id ? item.Id.toString() : `ql-${index}`,
-            title: item.Title || 'Resource Link',
+            title: item.Title || item.FileLeafRef || 'Resource Link',
             url: urlStr,
             description: item.Description
           };
@@ -352,6 +336,70 @@ export class SpService {
       console.warn('[L&D Portal] Failed to fetch QuickLinks from SharePoint list:', err);
       return [];
     }
+  }
+
+  /**
+   * Dynamically resolves a SharePoint list title on the current site by checking exact title,
+   * title with spaces inserted, or matching RootFolder URL name.
+   */
+  private async resolveListTitle(webUrl: string, listName: string): Promise<string | undefined> {
+    const trimmed = listName.trim();
+    if (!trimmed) return undefined;
+
+    // 1. Try exact Title match
+    try {
+      const res1 = await this.context.spHttpClient.get(
+        `${webUrl}/_api/web/lists?$filter=Title eq '${encodeURIComponent(trimmed)}'&$select=Title`,
+        SPHttpClient.configurations.v1
+      );
+      if (res1.ok) {
+        const data1 = await res1.json();
+        if (data1.value && data1.value.length > 0) {
+          return data1.value[0].Title;
+        }
+      }
+    } catch (_e) { }
+
+    // 2. Try inserting spaces between camelCase (e.g. 'UpcomingEvents' -> 'Upcoming Events')
+    const withSpaces = trimmed.replace(/([a-z])([A-Z])/g, '$1 $2');
+    if (withSpaces !== trimmed) {
+      try {
+        const res2 = await this.context.spHttpClient.get(
+          `${webUrl}/_api/web/lists?$filter=Title eq '${encodeURIComponent(withSpaces)}'&$select=Title`,
+          SPHttpClient.configurations.v1
+        );
+        if (res2.ok) {
+          const data2 = await res2.json();
+          if (data2.value && data2.value.length > 0) {
+            return data2.value[0].Title;
+          }
+        }
+      } catch (_e) { }
+    }
+
+    // 3. Fallback: Query all lists and match Title or RootFolder.Name ignoring spaces and case
+    try {
+      const res3 = await this.context.spHttpClient.get(
+        `${webUrl}/_api/web/lists?$select=Title,RootFolder/Name&$expand=RootFolder`,
+        SPHttpClient.configurations.v1
+      );
+      if (res3.ok) {
+        const data3 = await res3.json();
+        if (data3.value && Array.isArray(data3.value)) {
+          const targetNorm = trimmed.replace(/\s+/g, '').toLowerCase();
+          const match = data3.value.find((item: { Title?: string; RootFolder?: { Name?: string } }) => {
+            const tNorm = item.Title ? item.Title.replace(/\s+/g, '').toLowerCase() : '';
+            const rNorm = item.RootFolder && item.RootFolder.Name ? item.RootFolder.Name.replace(/\s+/g, '').toLowerCase() : '';
+            return tNorm === targetNorm || rNorm === targetNorm;
+          });
+          if (match && match.Title) {
+            return match.Title;
+          }
+        }
+      }
+    } catch (_e) { }
+
+    return undefined;
   }
 
   /**

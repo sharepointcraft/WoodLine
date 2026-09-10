@@ -83,7 +83,7 @@ const INITIAL_FILTERS: IFilterState = {
 
 const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) => {
   const {
-    libraryTitle = 'Documents',
+    libraryTitle = '',
     quickLinksListName = '',
     upcomingEventsListName = '',
     useMockData,
