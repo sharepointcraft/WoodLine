@@ -22,6 +22,7 @@ export interface IVideoSession {
   fileName: string;
   fileExtension: string;
   thumbnailUrl: string;
+  cardThumbnailUrl?: string;
   createdDate: string;
   year: string;
   month: string;

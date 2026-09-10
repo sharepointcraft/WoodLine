@@ -101,6 +101,10 @@ export const SessionCard: React.FC<ISessionCardProps> = ({
           }
         }}
       >
+        {video.cardThumbnailUrl ? (
+          <img className={styles.videoThumbnail} src={video.cardThumbnailUrl} alt="" />
+        ) : null}
+
         {/* Centered Circular White Play Button with Navy Triangle */}
         <button
           type="button"

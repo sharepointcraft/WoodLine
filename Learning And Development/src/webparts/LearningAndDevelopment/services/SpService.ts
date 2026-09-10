@@ -626,6 +626,7 @@ export class SpService {
           thumbnailUrl: `${webUrl}/_layouts/15/getpreview.ashx?path=${encodeURIComponent(
             file.ServerRelativeUrl
           )}&resolution=3`,
+          cardThumbnailUrl: this.getThumbnailUrl(itemFields.Thumbnail, webUrl),
           createdDate: this.formatDate(createdDate),
           year: dateObj.getFullYear().toString(),
           month: dateObj.toLocaleString('default', { month: 'long' }),
@@ -645,6 +646,49 @@ export class SpService {
     const value = itemFields[fieldName];
     return typeof value === 'string' ? value.trim() : '';
   }
+
+  /** Gets an image URL from the custom SharePoint Thumbnail field. */
+  private getThumbnailUrl(value: unknown, webUrl: string): string {
+    let imageValue: unknown = value;
+
+    if (typeof imageValue === 'string') {
+      const trimmedValue = imageValue.trim();
+      if (!trimmedValue) return '';
+      try {
+        imageValue = JSON.parse(trimmedValue) as unknown;
+      } catch {
+        return this.toAbsoluteImageUrl(trimmedValue, webUrl);
+      }
+    }
+
+    if (!imageValue || typeof imageValue !== 'object') return '';
+
+    const image = imageValue as {
+      Url?: unknown;
+      url?: unknown;
+      serverUrl?: unknown;
+      serverRelativeUrl?: unknown;
+    };
+    const directUrl = typeof image.Url === 'string' ? image.Url : image.url;
+    if (typeof directUrl === 'string') return this.toAbsoluteImageUrl(directUrl, webUrl);
+
+    if (typeof image.serverRelativeUrl === 'string') {
+      const serverUrl = typeof image.serverUrl === 'string' ? image.serverUrl.replace(/\/$/, '') : webUrl;
+      return this.toAbsoluteImageUrl(`${serverUrl}${image.serverRelativeUrl}`, webUrl);
+    }
+
+    return '';
+  }
+
+  /** Allows only absolute HTTP(S) or site-relative image URLs. */
+  private toAbsoluteImageUrl(url: string, webUrl: string): string {
+    const trimmedUrl = url.trim();
+    if (trimmedUrl.indexOf('/') === 0 && trimmedUrl.indexOf('//') !== 0) {
+      return `${new URL(webUrl).origin}${trimmedUrl}`;
+    }
+    return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : '';
+  }
+
 
   /**
    * Helper: Formats total seconds into mm:ss or h:mm:ss format

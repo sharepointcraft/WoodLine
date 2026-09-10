@@ -1522,7 +1522,8 @@ $border: #ded9bd;
 .contentWrapper {
   width: 100%;
   box-sizing: border-box;
-  padding: 0 64px 80px 64px;
+  padding: 0px 48px 60px;
+  //padding: 0 64px 80px 64px;
   /* 0 top padding: completely eliminates the gap above the filter panel */
   margin: 0 auto;
 }
@@ -1825,8 +1826,10 @@ $border: #ded9bd;
 
   /* Compact video thumbnail banner with blue gradient */
   .videoArea {
-    height: 112px;
-    /* Compact 16:9 banner height */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    /* Standard video frame ratio, matching the reference thumbnails. */
     background: linear-gradient(135deg, $navy 0%, $navy-light 100%);
     /* Blue gradient thumbnail header */
     position: relative;
@@ -1834,6 +1837,15 @@ $border: #ded9bd;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+
+    .videoThumbnail {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
 
     /* Compact centered white circular play button */
     .playButton {
@@ -1846,6 +1858,7 @@ $border: #ded9bd;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      z-index: 1;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
       transition: transform 0.2s ease;
 
@@ -1867,14 +1880,15 @@ $border: #ded9bd;
     /* Compact video duration badge in top-right corner */
     .duration {
       position: absolute;
-      top: 8px;
+      bottom: 3px;
       right: 8px;
       background: rgba(0, 32, 92, 0.85);
       color: $white;
       font-size: 10px;
       font-weight: 600;
       padding: 2px 6px;
-      border-radius: 3px;
+      border-radius: 5px;
+      z-index: 1;
     }
   }
 
