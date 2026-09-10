@@ -15,6 +15,8 @@ export interface ILearningCollection {
 export interface IVideoSession {
   id: string;
   title: string;
+  sessionTitle?: string;
+  speakerName?: string;
   description: string;
   serverRelativeUrl: string;
   fileName: string;

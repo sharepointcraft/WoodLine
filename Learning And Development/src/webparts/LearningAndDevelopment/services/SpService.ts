@@ -42,8 +42,11 @@ interface ISpFileItem {
   Length?: number;
   ListItemAllFields?: {
     Title?: string;
+    SessionTitle?: string;
+    SpeakerName?: string;
     Description?: string;
     Comments?: string;
+    [key: string]: unknown;
   };
 }
 
@@ -609,6 +612,10 @@ export class SpService {
         return {
           id: file.ServerRelativeUrl || `vid-${index}`,
           title: cleanTitle,
+          // These custom library fields are intentionally optional: every video is
+          // returned even when either field is blank.
+          sessionTitle: this.getTextField(itemFields, 'SessionTitle'),
+          speakerName: this.getTextField(itemFields, 'SpeakerName'),
           description:
             itemFields.Description ||
             itemFields.Comments ||
@@ -623,7 +630,7 @@ export class SpService {
           year: dateObj.getFullYear().toString(),
           month: dateObj.toLocaleString('default', { month: 'long' }),
           fileSize: this.formatBytes(file.Length || 0),
-          duration: `${Math.floor(Math.random() * 25 + 10)} min`,
+          duration: this.extractDurationFromItem(itemFields),
           folderServerRelativeUrl: folderServerRelativeUrl,
           folderName: folderName
         };
@@ -631,6 +638,51 @@ export class SpService {
     } catch {
       return this.getMockSessionsForFolder(folderServerRelativeUrl);
     }
+  }
+
+  /** Returns a trimmed custom library field value, or an empty string when blank. */
+  private getTextField(itemFields: { [key: string]: unknown }, fieldName: string): string {
+    const value = itemFields[fieldName];
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * Helper: Formats total seconds into mm:ss or h:mm:ss format
+   */
+  private formatDurationSeconds(seconds: number): string {
+    if (isNaN(seconds) || seconds <= 0) return '';
+    const totalSecs = Math.floor(seconds);
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  /**
+   * Helper: Extracts actual media duration from SharePoint list item fields if present
+   */
+  private extractDurationFromItem(itemFields: any): string {
+    if (!itemFields) return '';
+    const directSeconds = itemFields.MediaLengthInSeconds || itemFields.VideoDuration || itemFields.Duration;
+    if (directSeconds && !isNaN(Number(directSeconds))) {
+      return this.formatDurationSeconds(Number(directSeconds));
+    }
+    if (itemFields.MediaServiceMetadata) {
+      try {
+        const meta = typeof itemFields.MediaServiceMetadata === 'string'
+          ? JSON.parse(itemFields.MediaServiceMetadata)
+          : itemFields.MediaServiceMetadata;
+        if (meta && meta.mediaDuration && !isNaN(Number(meta.mediaDuration))) {
+          return this.formatDurationSeconds(Number(meta.mediaDuration));
+        }
+      } catch {
+        // Ignore JSON parse error
+      }
+    }
+    return '';
   }
 
   /**
