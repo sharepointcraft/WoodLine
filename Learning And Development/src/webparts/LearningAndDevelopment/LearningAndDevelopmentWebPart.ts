@@ -15,7 +15,7 @@ import { ILearningAndDevelopmentProps } from './components/ILearningAndDevelopme
 export interface ILearningAndDevelopmentWebPartProps {
   description: string;
   libraryTitle: string;
-  quickLinksListName: string;
+  resourcesAndDocumentsListName: string;
   upcomingEventsListName: string;
   useMockData: boolean;
   videoExtensions: string;
@@ -32,7 +32,7 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
       {
         description: this.properties.description || 'Learning & Development Video Portal',
         libraryTitle: this.properties.libraryTitle !== undefined ? this.properties.libraryTitle : '',
-        quickLinksListName: this.properties.quickLinksListName !== undefined ? this.properties.quickLinksListName : '',
+        resourcesAndDocumentsListName: this.properties.resourcesAndDocumentsListName !== undefined ? this.properties.resourcesAndDocumentsListName : '',
         upcomingEventsListName: this.properties.upcomingEventsListName !== undefined ? this.properties.upcomingEventsListName : '',
         useMockData: this.properties.useMockData !== undefined ? this.properties.useMockData : false,
         videoExtensions: this.properties.videoExtensions || 'mp4,mov,wmv,avi,webm,mkv,m4v',
@@ -119,7 +119,7 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
                   label: 'Document Library Title',
                   description: 'Name of the SharePoint document library containing learning folders'
                 }),
-                PropertyPaneTextField('quickLinksListName', {
+                PropertyPaneTextField('resourcesAndDocumentsListName', {
                   label: 'Resources & Documents List Name',
                   description: 'Name of the SharePoint list for Resources & Documents'
                 }),

@@ -29,7 +29,7 @@
       "properties": {
         "description": "Learning & Development Center",
         "libraryTitle": "Documents",
-        "quickLinksListName": "",
+        "resourcesAndDocumentsListName": "",
         "upcomingEventsListName": "",
         "useMockData": false,
         "videoExtensions": "mp4,mov,wmv,avi,webm,mkv,m4v"

@@ -69,11 +69,11 @@ export class SpService {
    * Retrieves top-level folders from the designated library (showing ONLY folders where Active Yes/No column is explicitly Yes / true, excluding null/undefined/false).
    */
   public async getTopLevelFolders(
-    libraryTitle: string = 'Documents',
+    libraryTitle: string = '',
     useMock: boolean = false,
     allowedExtensions: string[] = ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v']
   ): Promise<ILearningCollection[]> {
-    if (libraryTitle !== undefined && libraryTitle.trim() === '') {
+    if (!libraryTitle || !libraryTitle.trim()) {
       return [];
     }
 
@@ -266,9 +266,10 @@ export class SpService {
   }
 
   /**
-   * Retrieves quick links from the configured SharePoint list.
+   * Retrieves Resources & Documents items from the configured SharePoint list.
+   * Expected list columns: Title (Single Line of Text), LinkURL (Single Line of Text), Active (Yes/No boolean).
    */
-  public async getQuickLinks(
+  public async getResourcesAndDocuments(
     listName: string = '',
     useMock: boolean = false
   ): Promise<IQuickLinkItem[]> {
@@ -284,13 +285,13 @@ export class SpService {
       const targetListName = await this.resolveListTitle(webUrl, listName);
 
       if (!targetListName) {
-        console.log(`[L&D Portal] QuickLinks List '${listName}' does not exist on site.`);
+        console.log(`[L&D Portal] Resources & Documents List '${listName}' does not exist on site.`);
         return [];
       }
 
       const endpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
         targetListName
-      )}')/items`;
+      )}')/items?$select=Id,Title,LinkURL,LinkUrl,Active`;
 
       const response: SPHttpClientResponse = await this.context.spHttpClient.get(
         endpoint,
@@ -306,36 +307,51 @@ export class SpService {
 
       return rawItems
         .filter((item) => {
+          const act = item.Active;
           if (
-            item.Active === false ||
-            item.Active === 'false' ||
-            item.Active === 'No' ||
-            item.Active === 0
+            act === false ||
+            act === 'false' ||
+            act === 'False' ||
+            act === 'No' ||
+            act === 'no' ||
+            act === 0 ||
+            act === '0'
           ) {
             return false;
           }
           return true;
         })
         .map((item, index) => {
-          const rawUrl = item.URL || item.Url || item.LinkUrl || item.Link || item.Address || item.Hyperlink || item.WebPage || item.FileRef;
+          // LinkURL is a Single Line of Text column (containing URL string)
+          const rawUrl = item.LinkURL || item.LinkUrl || item.URL || item.Url;
           let urlStr = '#';
-          if (typeof rawUrl === 'string') {
-            urlStr = rawUrl;
+          if (typeof rawUrl === 'string' && rawUrl.trim()) {
+            urlStr = rawUrl.trim();
           } else if (rawUrl && typeof rawUrl === 'object' && rawUrl.Url) {
             urlStr = rawUrl.Url;
           }
 
           return {
-            id: item.Id ? item.Id.toString() : `ql-${index}`,
-            title: item.Title || item.FileLeafRef || 'Resource Link',
+            id: item.Id ? item.Id.toString() : `rd-${index}`,
+            title: item.Title || 'Resource Link',
             url: urlStr,
             description: item.Description
           };
         });
     } catch (err) {
-      console.warn('[L&D Portal] Failed to fetch QuickLinks from SharePoint list:', err);
+      console.warn('[L&D Portal] Failed to fetch Resources & Documents from SharePoint list:', err);
       return [];
     }
+  }
+
+  /**
+   * Alias for backward compatibility.
+   */
+  public async getQuickLinks(
+    listName: string = '',
+    useMock: boolean = false
+  ): Promise<IQuickLinkItem[]> {
+    return this.getResourcesAndDocuments(listName, useMock);
   }
 
   /**
@@ -406,65 +422,33 @@ export class SpService {
    * Dynamically resolves the Document Library Title on the current SharePoint site.
    */
   private async getLibraryListTitle(webUrl: string, configuredTitle: string): Promise<string> {
-    // 1. Try configured title first
+    if (!configuredTitle || !configuredTitle.trim()) {
+      return '';
+    }
+
+    const cleanTitle = configuredTitle.trim();
+
+    // 1. Try exact configured title first
     try {
       const res = await this.context.spHttpClient.get(
-        `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(configuredTitle)}')?$select=Title`,
+        `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(cleanTitle)}')?$select=Title`,
         SPHttpClient.configurations.v1
       );
       if (res.ok) {
         const data = await res.json();
-        return data.Title || configuredTitle;
+        return data.Title || cleanTitle;
       }
     } catch (_err) {
-      // Continue fallback
+      // Continue resolution
     }
 
-    // 2. Try 'Documents'
-    try {
-      const res = await this.context.spHttpClient.get(
-        `${webUrl}/_api/web/lists/getByTitle('Documents')?$select=Title`,
-        SPHttpClient.configurations.v1
-      );
-      if (res.ok) {
-        const data = await res.json();
-        return data.Title || 'Documents';
-      }
-    } catch (_err) {
-      // Continue fallback
+    // 2. Try resolving title variations (such as camelCase spaces) for configured list title
+    const resolvedTitle = await this.resolveListTitle(webUrl, cleanTitle);
+    if (resolvedTitle) {
+      return resolvedTitle;
     }
 
-    // 3. Try 'Shared Documents'
-    try {
-      const res = await this.context.spHttpClient.get(
-        `${webUrl}/_api/web/lists/getByTitle('Shared%20Documents')?$select=Title`,
-        SPHttpClient.configurations.v1
-      );
-      if (res.ok) {
-        const data = await res.json();
-        return data.Title || 'Shared Documents';
-      }
-    } catch (_err) {
-      // Continue fallback
-    }
-
-    // 4. Fallback: Query all Document Libraries on this site (BaseTemplate 101)
-    try {
-      const res = await this.context.spHttpClient.get(
-        `${webUrl}/_api/web/lists?$filter=BaseTemplate eq 101 and Hidden eq false&$select=Title`,
-        SPHttpClient.configurations.v1
-      );
-      if (res.ok) {
-        const data = await res.json();
-        if (data.value && data.value.length > 0) {
-          return data.value[0].Title;
-        }
-      }
-    } catch (_err) {
-      // Continue fallback
-    }
-
-    return configuredTitle;
+    return cleanTitle;
   }
 
   /**
@@ -532,6 +516,9 @@ export class SpService {
    * Fallback Method 3: Query folders via List Title rootFolder endpoint
    */
   private async getFoldersByListTitle(libraryTitle: string): Promise<ILearningCollection[]> {
+    if (!libraryTitle || !libraryTitle.trim()) {
+      return [];
+    }
     try {
       const webUrl = this.context.pageContext.web.absoluteUrl;
       const resolvedTitle = await this.getLibraryListTitle(webUrl, libraryTitle);
@@ -542,7 +529,7 @@ export class SpService {
 
       const response = await this.context.spHttpClient.get(endpoint, SPHttpClient.configurations.v1);
       if (!response.ok) {
-        return this.getMockCollections().filter((c) => c.isActive !== false);
+        return [];
       }
 
       const data: { value?: ISpFolderItem[] } = await response.json();
@@ -570,7 +557,7 @@ export class SpService {
           isActive: true
         }));
     } catch {
-      return this.getMockCollections().filter((c) => c.isActive !== false);
+      return [];
     }
   }
 
@@ -685,10 +672,13 @@ export class SpService {
    * Retrieves overall learning library statistics across ALL active folders in the library.
    */
   public async getLibraryStats(
-    libraryTitle: string = 'Documents',
+    libraryTitle: string = '',
     useMock: boolean = false,
     allowedExtensions: string[] = ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v']
   ): Promise<ILearningStats> {
+    if (!libraryTitle || !libraryTitle.trim()) {
+      return { totalCollections: 0, totalSessions: 0 };
+    }
     const collections = await this.getTopLevelFolders(libraryTitle, useMock, allowedExtensions);
 
     let totalSessionsSum = 0;
@@ -715,7 +705,10 @@ export class SpService {
 
   private getLibraryRelativeUrl(libraryTitle: string): string {
     const serverRelUrl = this.context?.pageContext?.web?.serverRelativeUrl || '';
-    const cleanTitle = libraryTitle === 'Documents' ? 'Shared Documents' : libraryTitle;
+    if (!libraryTitle || !libraryTitle.trim()) {
+      return serverRelUrl;
+    }
+    const cleanTitle = libraryTitle.trim() === 'Documents' ? 'Shared Documents' : libraryTitle.trim();
     return `${serverRelUrl}/${cleanTitle}`.replace(/\/+/g, '/');
   }
 

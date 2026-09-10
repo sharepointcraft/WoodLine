@@ -3,7 +3,7 @@
   "solution": {
     "name": "learning-and-development-client-side-solution",
     "id": "440066a5-47c8-4c09-882b-f9763960a0ba",
-    "version": "1.0.0.5",
+    "version": "1.0.0.6",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

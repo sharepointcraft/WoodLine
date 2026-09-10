@@ -27,8 +27,8 @@ export const ResourcesPanel: React.FC<IResourcesPanelProps> = ({
       </p>
 
       <div className={styles.resourceList}>
-        {hasCustomQuickLinks
-          ? quickLinks.map((link) => (
+        {hasCustomQuickLinks ? (
+          quickLinks.map((link) => (
             <a
               key={link.id}
               href={link.url || '#'}
@@ -45,21 +45,11 @@ export const ResourcesPanel: React.FC<IResourcesPanelProps> = ({
               </span>
             </a>
           ))
-          : collections.map((col) => (
-            <button
-              key={col.id}
-              type="button"
-              className={styles.resourceButton}
-              onClick={() => onSelectCollection(col)}
-            >
-              <span className={styles.resourceIcon} aria-hidden="true">
-                <Icon iconName="OpenInNewWindow" />
-              </span>
-              <span className={styles.resourceText}>
-                {col.title}
-              </span>
-            </button>
-          ))}
+        ) : (
+          <div style={{ padding: '16px 8px', color: '#666', fontSize: '13px', fontStyle: 'italic', textAlign: 'center' }}>
+            No resources available.
+          </div>
+        )}
       </div>
 
       <div className={styles.resourcesFooter}>

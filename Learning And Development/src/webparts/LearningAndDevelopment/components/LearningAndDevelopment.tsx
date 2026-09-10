@@ -84,7 +84,7 @@ const INITIAL_FILTERS: IFilterState = {
 const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) => {
   const {
     libraryTitle = '',
-    quickLinksListName = '',
+    resourcesAndDocumentsListName = '',
     upcomingEventsListName = '',
     useMockData,
     videoExtensions,
@@ -116,12 +116,16 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
         : ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v'];
 
       const fetchedCollections = await spService.getTopLevelFolders(libraryTitle, useMockData, allowedExts);
-      const fetchedStats = await spService.getLibraryStats(libraryTitle, useMockData, allowedExts);
       const fetchedEvents = await spService.getUpcomingEvents(upcomingEventsListName, useMockData);
-      const fetchedQuickLinks = await spService.getQuickLinks(quickLinksListName, useMockData);
+      const fetchedQuickLinks = await spService.getResourcesAndDocuments(resourcesAndDocumentsListName, useMockData);
+
+      const totalSessionsSum = fetchedCollections.reduce((sum, col) => sum + (col.itemCount || 0), 0);
 
       setCollections(fetchedCollections);
-      setStats(fetchedStats);
+      setStats({
+        totalCollections: fetchedCollections.length,
+        totalSessions: totalSessionsSum
+      });
       setUpcomingEvents(fetchedEvents);
       setQuickLinks(fetchedQuickLinks);
       setIsLoading(false);
@@ -130,10 +134,21 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [libraryTitle, quickLinksListName, upcomingEventsListName, useMockData, videoExtensions, spService]);
+  }, [libraryTitle, resourcesAndDocumentsListName, upcomingEventsListName, useMockData, videoExtensions, spService]);
 
   useEffect(() => {
     loadPortalData().catch(() => { });
+  }, [loadPortalData]);
+
+  // Window focus listener to automatically re-sync video counts and new folders when user returns to tab
+  useEffect(() => {
+    const handleFocus = (): void => {
+      loadPortalData().catch(() => { });
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [loadPortalData]);
 
   const handleSelectCollection = useCallback(async (collection: ILearningCollection): Promise<void> => {
@@ -160,6 +175,27 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
       );
 
       setSessions(fetchedSessions);
+
+      // Automatically update live video session count for flip card & hero section stats
+      const liveCount = fetchedSessions.length;
+      setCollections((prevCollections) => {
+        const updated = prevCollections.map((col) =>
+          col.id === collection.id || col.serverRelativeUrl === collection.serverRelativeUrl
+            ? { ...col, itemCount: liveCount }
+            : col
+        );
+        const newTotalSessions = updated.reduce((sum, c) => sum + (c.itemCount || 0), 0);
+        setStats({
+          totalCollections: updated.length,
+          totalSessions: newTotalSessions
+        });
+        return updated;
+      });
+
+      setSelectedCollection((prev) =>
+        prev ? { ...prev, itemCount: liveCount } : prev
+      );
+
       setIsLoading(false);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load video sessions for this collection.';
@@ -172,7 +208,9 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
     setViewMode('collections');
     setSelectedCollection(undefined);
     setSessions([]);
-  }, []);
+    // Automatically refresh portal data to pick up any future folder/video additions
+    loadPortalData().catch(() => { });
+  }, [loadPortalData]);
 
   const filteredCollections = useMemo(() => {
     let list = [...collections];
