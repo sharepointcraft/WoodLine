@@ -42,8 +42,11 @@ interface ISpFileItem {
   Length?: number;
   ListItemAllFields?: {
     Title?: string;
+    SessionTitle?: string;
+    SpeakerName?: string;
     Description?: string;
     Comments?: string;
+    [key: string]: unknown;
   };
 }
 
@@ -644,6 +647,10 @@ export class SpService {
         return {
           id: file.ServerRelativeUrl || `vid-${index}`,
           title: cleanTitle,
+          // These custom library fields are intentionally optional: every video is
+          // returned even when either field is blank.
+          sessionTitle: this.getTextField(itemFields, 'SessionTitle'),
+          speakerName: this.getTextField(itemFields, 'SpeakerName'),
           description:
             itemFields.Description ||
             itemFields.Comments ||
@@ -654,11 +661,12 @@ export class SpService {
           thumbnailUrl: `${webUrl}/_layouts/15/getpreview.ashx?path=${encodeURIComponent(
             file.ServerRelativeUrl
           )}&resolution=3`,
+          cardThumbnailUrl: this.getThumbnailUrl(itemFields.Thumbnail, webUrl),
           createdDate: this.formatDate(createdDate),
           year: dateObj.getFullYear().toString(),
           month: dateObj.toLocaleString('default', { month: 'long' }),
           fileSize: this.formatBytes(file.Length || 0),
-          duration: `${Math.floor(Math.random() * 25 + 10)} min`,
+          duration: this.extractDurationFromItem(itemFields),
           folderServerRelativeUrl: folderServerRelativeUrl,
           folderName: folderName
         };
@@ -666,6 +674,94 @@ export class SpService {
     } catch {
       return this.getMockSessionsForFolder(folderServerRelativeUrl);
     }
+  }
+
+  /** Returns a trimmed custom library field value, or an empty string when blank. */
+  private getTextField(itemFields: { [key: string]: unknown }, fieldName: string): string {
+    const value = itemFields[fieldName];
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  /** Gets an image URL from the custom SharePoint Thumbnail field. */
+  private getThumbnailUrl(value: unknown, webUrl: string): string {
+    let imageValue: unknown = value;
+
+    if (typeof imageValue === 'string') {
+      const trimmedValue = imageValue.trim();
+      if (!trimmedValue) return '';
+      try {
+        imageValue = JSON.parse(trimmedValue) as unknown;
+      } catch {
+        return this.toAbsoluteImageUrl(trimmedValue, webUrl);
+      }
+    }
+
+    if (!imageValue || typeof imageValue !== 'object') return '';
+
+    const image = imageValue as {
+      Url?: unknown;
+      url?: unknown;
+      serverUrl?: unknown;
+      serverRelativeUrl?: unknown;
+    };
+    const directUrl = typeof image.Url === 'string' ? image.Url : image.url;
+    if (typeof directUrl === 'string') return this.toAbsoluteImageUrl(directUrl, webUrl);
+
+    if (typeof image.serverRelativeUrl === 'string') {
+      const serverUrl = typeof image.serverUrl === 'string' ? image.serverUrl.replace(/\/$/, '') : webUrl;
+      return this.toAbsoluteImageUrl(`${serverUrl}${image.serverRelativeUrl}`, webUrl);
+    }
+
+    return '';
+  }
+
+  /** Allows only absolute HTTP(S) or site-relative image URLs. */
+  private toAbsoluteImageUrl(url: string, webUrl: string): string {
+    const trimmedUrl = url.trim();
+    if (trimmedUrl.indexOf('/') === 0 && trimmedUrl.indexOf('//') !== 0) {
+      return `${new URL(webUrl).origin}${trimmedUrl}`;
+    }
+    return /^https?:\/\//i.test(trimmedUrl) ? trimmedUrl : '';
+  }
+
+
+  /**
+   * Helper: Formats total seconds into mm:ss or h:mm:ss format
+   */
+  private formatDurationSeconds(seconds: number): string {
+    if (isNaN(seconds) || seconds <= 0) return '';
+    const totalSecs = Math.floor(seconds);
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    if (hrs > 0) {
+      return `${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  }
+
+  /**
+   * Helper: Extracts actual media duration from SharePoint list item fields if present
+   */
+  private extractDurationFromItem(itemFields: any): string {
+    if (!itemFields) return '';
+    const directSeconds = itemFields.MediaLengthInSeconds || itemFields.VideoDuration || itemFields.Duration;
+    if (directSeconds && !isNaN(Number(directSeconds))) {
+      return this.formatDurationSeconds(Number(directSeconds));
+    }
+    if (itemFields.MediaServiceMetadata) {
+      try {
+        const meta = typeof itemFields.MediaServiceMetadata === 'string'
+          ? JSON.parse(itemFields.MediaServiceMetadata)
+          : itemFields.MediaServiceMetadata;
+        if (meta && meta.mediaDuration && !isNaN(Number(meta.mediaDuration))) {
+          return this.formatDurationSeconds(Number(meta.mediaDuration));
+        }
+      } catch {
+        // Ignore JSON parse error
+      }
+    }
+    return '';
   }
 
   /**

@@ -488,9 +488,10 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
         /* =========================================================
            SESSION PAGE UI (REDESIGNED LEARNING SESSION DETAIL PAGE)
            ========================================================= */
-        <div className={styles.learningAndDevelopment}>
-          {/* HERO HEADER SECTION */}
+        <div className={styles.sessionSubpage}>
+          {/* 1. HERO HEADER SECTION - SOLID DEEP NAVY */}
           <div className={styles.heroSection}>
+            {/* Pill-shaped Back Navigation Button */}
             <button
               type="button"
               className={styles.backButton}
@@ -499,18 +500,22 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
               <span>&larr;</span> Back to Learning Library
             </button>
 
+            {/* Collection Category Tag */}
             <div className={styles.heroLabel}>
               LEARNING COLLECTION
             </div>
 
+            {/* Collection Title (Serif Typography) */}
             <h1>
-              {selectedCollection?.title || 'Analysts'}
+              {selectedCollection?.title || 'Associates'}
             </h1>
 
+            {/* Collection Description */}
             <p>
-              {selectedCollection?.description || 'Browse video training sessions, presentations, and learning resources.'}
+              {selectedCollection?.description || 'The Associate curriculum and town halls \u2014 modelling standards, alt data, management meetings and the expectations that come with the seat.'}
             </p>
 
+            {/* Sessions Count Pill Badge */}
             <div className={styles.sessionCount}>
               <strong>
                 {filteredSessions.length}
@@ -521,9 +526,9 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
             </div>
           </div>
 
-          {/* MAIN CONTENT WRAPPER */}
+          {/* 2. MAIN CONTENT WRAPPER - WARM CREAM BACKGROUND */}
           <div className={styles.contentWrapper}>
-            {/* FLOATING SESSION FILTER PANEL */}
+            {/* FLOATING SESSION FILTER PANEL (PLACED AFTER HEADER) */}
             <SessionFilters
               filterState={filterState}
               availableYears={availableYears}
@@ -568,42 +573,49 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
 
                       return (
                         <div className={styles.yearSection} key={year}>
-                          {/* YEAR HEADING */}
+                          {/* YEAR HEADING WITH FULL-WIDTH HORIZONTAL DIVIDER LINE */}
                           <div className={styles.yearHeading}>
                             <h2>{year}</h2>
                             <div className={styles.yearLine} />
                           </div>
 
-                          {/* MONTH SECTIONS */}
-                          {monthKeys.map((month) => {
-                            const monthVideos = groupedByMonth[month];
-                            return (
-                              <div className={styles.monthSection} key={`${year}-${month}`}>
-                                {/* MONTH HEADING */}
-                                <div className={styles.monthHeading}>
-                                  <h3>{month}</h3>
-                                  <span>
-                                    {monthVideos.length} {monthVideos.length === 1 ? 'SESSION' : 'SESSIONS'}
-                                  </span>
-                                </div>
+                          {/* YEAR TIMELINE CONTAINER: VERTICAL LINE ON THE LEFT + MONTHS ON THE RIGHT */}
+                          <div className={styles.yearTimelineContainer}>
+                            {/* VERTICAL LINE EXTENDING ALONGSIDE ALL MONTHS & CARDS */}
+                            <div className={styles.timelineVerticalLine} />
 
-                                {/* MONTH CONTENT */}
-                                <div className={styles.monthContent}>
-                                  <div className={styles.monthVerticalLine} />
-                                  <div className={styles.sessionGrid}>
-                                    {monthVideos.map((video) => (
-                                      <SessionCard
-                                        key={video.id}
-                                        video={video}
-                                        collectionTitle={selectedCollection?.title}
-                                        onWatchVideo={handleWatchVideo}
-                                      />
-                                    ))}
+                            {/* MONTH SECTIONS LIST */}
+                            <div className={styles.yearMonthsList}>
+                              {monthKeys.map((month) => {
+                                const monthVideos = groupedByMonth[month];
+                                return (
+                                  <div className={styles.monthSection} key={`${year}-${month}`}>
+                                    {/* MONTH HEADING WITH SESSIONS COUNT BADGE */}
+                                    <div className={styles.monthHeading}>
+                                      <h3>{month}</h3>
+                                      <span>
+                                        {monthVideos.length} {monthVideos.length === 1 ? 'SESSION' : 'SESSIONS'}
+                                      </span>
+                                    </div>
+
+                                    {/* MONTH SESSIONS: CLEAN 3-COLUMN CARD GRID */}
+                                    <div className={styles.monthContent}>
+                                      <div className={styles.sessionGrid}>
+                                        {monthVideos.map((video) => (
+                                          <SessionCard
+                                            key={video.id}
+                                            video={video}
+                                            collectionTitle={selectedCollection?.title}
+                                            onWatchVideo={handleWatchVideo}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                                );
+                              })}
+                            </div>
+                          </div>
                         </div>
                       );
                     })}
