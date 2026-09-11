@@ -477,7 +477,7 @@
   flex-direction: column;
   justify-content: flex-end;
   overflow: hidden;
-
+  box-sizing: border-box;
   &::before {
     content: '';
     position: absolute;
@@ -502,12 +502,21 @@
   font-size: 20px;
 }
 
+// .cardContent {
+//   flex: 1;
+//   display: flex;
+//   flex-direction: column;
+//   justify-content: flex-end;
+//   margin: 12px 0;
+//   overflow: hidden;
+// }
+
 .cardContent {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  margin: 12px 0;
+  justify-content: flex-start;
+  margin-top: auto;
+  margin-bottom: 30px;
   overflow: hidden;
 }
 
@@ -526,9 +535,14 @@
 }
 
 .sessionCount {
+    position: absolute;
+  left: 28px;
+  bottom: 28px;
+
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 12px;
+ font-size: 13px;
+  font-weight: 400;
   color: #687994;
 }
 
@@ -570,7 +584,7 @@
   margin: 0 0 6px 0;
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 20px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -582,7 +596,7 @@
 .backDescription {
   margin: 0 0 8px 0;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
   color: #e2e8f0;
@@ -604,7 +618,7 @@
   margin-top: auto;
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 800;
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   color: #D6CD8D;
 }
@@ -613,29 +627,33 @@
    5. RIGHT COLUMN: RESOURCES & UPCOMING EVENTS
    ========================================================= */
 
+// .rightColumn {
+//   width: 375px;
+//   flex-shrink: 0;
+//   display: flex;
+//   flex-direction: column;
+//   gap: 24px;
+// }
 .rightColumn {
   width: 375px;
   flex-shrink: 0;
+
+  /* Keep Resources + Events together */
   display: flex;
   flex-direction: column;
   gap: 24px;
+
+  /* Sticky entire right column */
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
+
+  /* Prevent the column from becoming wider than expected */
+  box-sizing: border-box;
+
+  /* Keep it above scrolling card content */
+  z-index: 10;
 }
-
-// .resourcesPanel {
-//   width: 100%;
-//   height: auto;
-//   max-height: 580px;
-//   flex-shrink: 0;
-//   min-height: 0;
-//   padding: 25px;
-//   box-sizing: border-box;
-//   background: #FFFFFF;
-//   border: 1px solid #E4DEC9;
-//   border-radius: 18px;
-//   display: flex;
-//   flex-direction: column;
-// }
-
 
 .resourcesPanel {
   width: 100%;
@@ -643,22 +661,38 @@
   max-height: 580px;
   flex-shrink: 0;
   min-height: 0;
-
-  /* Sticky behavior */
-  position: sticky;
-  top: 20px;
-  align-self: flex-start;
-  z-index: 10;
-
   padding: 25px;
   box-sizing: border-box;
   background: #FFFFFF;
   border: 1px solid #E4DEC9;
   border-radius: 18px;
-
   display: flex;
   flex-direction: column;
 }
+
+
+// .resourcesPanel {
+//   width: 100%;
+//   height: auto;
+//   max-height: 580px;
+//   flex-shrink: 0;
+//   min-height: 0;
+
+//   /* Sticky behavior */
+//   position: sticky;
+//   top: 20px;
+//   align-self: flex-start;
+//   z-index: 10;
+
+//   padding: 25px;
+//   box-sizing: border-box;
+//   background: #FFFFFF;
+//   border: 1px solid #E4DEC9;
+//   border-radius: 18px;
+
+//   display: flex;
+//   flex-direction: column;
+// }
 
 
 .resourcesTitle {
