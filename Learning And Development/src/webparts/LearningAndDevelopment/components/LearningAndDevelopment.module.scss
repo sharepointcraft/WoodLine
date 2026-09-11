@@ -19,7 +19,7 @@
 
 .learningAndDevelopment {
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   color: #00205C;
   background-color: transparent;
   width: 100%;
@@ -62,7 +62,7 @@
 
 .navigationPath {
   margin-bottom: 20px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.8px;
@@ -73,9 +73,9 @@
 
 .title {
   margin: 0 0 20px 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font);
   font-size: 58px;
-  font-weight: 400;
+  font-weight: 800;
   line-height: 1.05;
   color: #ffffff;
 }
@@ -84,7 +84,7 @@
   width: 100%;
   max-width: 100%;
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 19px;
   font-weight: 400;
   line-height: 1.65;
@@ -112,7 +112,7 @@
 
 .statNumber {
   margin-bottom: 4px;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font);
   font-size: 30px;
   font-weight: 400;
   line-height: 1;
@@ -120,7 +120,7 @@
 }
 
 .statLabel {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
@@ -151,7 +151,7 @@
 .FilterLabel {
   flex-shrink: 0;
   margin-right: 16px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 700;
   color: #00205C;
@@ -173,7 +173,7 @@
   border-radius: 50%;
   background: #FFFFFF;
   color: #00205C;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 700;
   display: flex;
@@ -236,16 +236,16 @@
 
 .libraryTitle {
   margin: 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font);
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 800;
   line-height: 1.2;
   color: #00205C;
 }
 
 .librarySubtitle {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
   color: #687994;
@@ -514,7 +514,7 @@
 
 .cardTitle {
   margin: 0 0 6px 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 20px;
   font-weight: 800;
   line-height: 1.25;
@@ -528,14 +528,14 @@
 
 .sessionCount {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 12px;
   color: #687994;
 }
 
 .flipText {
   margin-top: auto;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 11px;
   font-weight: 700;
   color: #806E22;
@@ -559,7 +559,7 @@
 
 .backLabel {
   margin-bottom: 6px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.3px;
@@ -569,7 +569,7 @@
 
 .backTitle {
   margin: 0 0 6px 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font);
   font-size: 20px;
   font-weight: 400;
   line-height: 1.2;
@@ -582,7 +582,7 @@
 
 .backDescription {
   margin: 0 0 8px 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
   line-height: 1.4;
@@ -595,7 +595,7 @@
 }
 
 .backSessions {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 11px;
   font-weight: 700;
   color: #ffffff;
@@ -603,7 +603,7 @@
 
 .backAction {
   margin-top: auto;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-weight: 800;
   font-size: 11px;
   text-transform: uppercase;
@@ -664,16 +664,16 @@
 
 .resourcesTitle {
   margin: 0 0 10px 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font);
   font-size: 30px;
-  font-weight: 400;
+  font-weight: 800;
   line-height: 1.2;
   color: #00205C;
 }
 
 .resourcesDescription {
   margin: 0 0 16px 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   line-height: 1.5;
   color: #687994;
@@ -737,7 +737,7 @@
 
 .resourceText {
   min-width: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.35;
@@ -752,7 +752,7 @@
 
   p {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font);
     font-size: 12px;
     line-height: 1.4;
     color: #687994;
@@ -766,7 +766,7 @@
 
   p {
     margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font);
     font-size: 12px;
     line-height: 1.4;
     color: #687994;
@@ -785,9 +785,9 @@
 
 .eventsTitle {
   margin: 0 0 16px 0;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font);
   font-size: 29px;
-  font-weight: 400;
+  font-weight: 800;
   line-height: 1.2;
   color: #00205C;
 }
@@ -838,7 +838,7 @@
 }
 
 .eventTitle {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.3;
@@ -852,7 +852,7 @@
 }
 
 .eventDetails {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 12px;
   line-height: 1.4;
   color: #687994;
@@ -872,7 +872,7 @@
 .eventEmpty {
   padding: 16px;
   text-align: center;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font);
   font-size: 13px;
   color: #687994;
   background: #F7F5EA;
@@ -1766,7 +1766,7 @@ $border: #ded9bd;
     margin-bottom: 24px;
 
     h2 {
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: var(--font);
       font-size: 36px;
       color: $text;
       /* #00205c */
