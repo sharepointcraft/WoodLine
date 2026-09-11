@@ -18,6 +18,7 @@
 }
 
 .learningAndDevelopment {
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-family: Arial, Helvetica, sans-serif;
   color: #00205C;
   background-color: transparent;
@@ -1173,7 +1174,7 @@
 
 .modalContent {
   background: #FFFFFF;
-  border-radius: 18px;
+  border-radius: 0;
   width: 100%;
   max-width: 860px;
   max-height: 90vh;
@@ -1232,6 +1233,21 @@
   background: #000000;
   width: 100%;
   aspect-ratio: 16 / 9;
+  position: relative;
+}
+
+.videoCloseBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.72);
+  color: #FFFFFF;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.88);
+  }
 }
 
 .videoElement {
@@ -1446,6 +1462,7 @@ $border: #ded9bd;
 .sessionSubpage {
   width: 100%;
   min-height: 100vh;
+  font-family: var(--font);
   background-color: $cream;
   /* #f7f5eb: Warm cream background matching reference */
   box-sizing: border-box;
@@ -1457,10 +1474,10 @@ $border: #ded9bd;
    7.1 HERO HEADER SECTION (Blue Gradient Banner)
    -------------------------------------------------------------------------- */
 .heroSection {
-  background: linear-gradient(105deg, $navy 0%, #0a2d68 45%, $navy-light 100%);
-  /* Blue gradient header based on palette */
+  min-height: 390px;
+  background: linear-gradient(105deg, #061b48 0%, #08295c 45%, #234e7d 100%);
   color: $white;
-  padding: 48px 64px 60px 64px;
+  padding: 60px 48px 50px;
   position: relative;
   width: 100%;
   box-sizing: border-box;
@@ -1501,48 +1518,55 @@ $border: #ded9bd;
 
   /* Main collection title in elegant serif typography */
   h1 {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 46px;
-    font-weight: 500;
-    margin: 0 0 16px 0;
+    font-family: var(--font);
+    font-size: 50px;
+    font-weight: 800;
+    margin: 0 0 20px 0;
     color: $white;
-    line-height: 1.15;
+    line-height: 1.05;
   }
 
   /* Collection description text */
   p {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 15px;
-    color: #cad5e2;
-    /* Soft muted tint */
-    max-width: 780px;
-    line-height: 1.6;
-    margin: 0 0 24px 0;
+    font-family: var(--font);
+    font-size: 17px;
+    font-weight: 400;
+    color: #f1f4fa;
+    max-width: 100%;
+    line-height: 1.65;
+    margin: 0;
   }
 
   /* Session count badge pill */
   .sessionCount {
+    width: auto;
+    min-height: 0;
+    margin-top: 28px;
+    padding: 7px 14px;
+    box-sizing: border-box;
     display: inline-flex;
+    flex-direction: row;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
     border: 1px solid $gold;
-    /* #d6cd8d */
-    padding: 7px 14px;
     border-radius: 8px;
     background: rgba(0, 32, 92, 0.55);
 
     strong {
       color: $gold;
-      /* #d6cd8d */
-      font-size: 15px;
+      margin-bottom: 0;
+      font-size: 25px;
       font-weight: 700;
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: var(--font);
+      line-height: normal;
     }
 
     span {
       color: $white;
       font-size: 12px;
       font-weight: 400;
+      line-height: normal;
     }
   }
 }
@@ -1590,7 +1614,7 @@ $border: #ded9bd;
     gap: 14px;
 
     .availableTitle {
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: var(--font);
       font-size: 24px;
       color: $text;
       /* #00205c */
@@ -1621,7 +1645,7 @@ $border: #ded9bd;
       gap: 4px;
 
       label {
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.8px;
         color: $text;
@@ -1658,7 +1682,7 @@ $border: #ded9bd;
       gap: 4px;
 
       label {
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.8px;
         color: $text;
@@ -1711,7 +1735,7 @@ $border: #ded9bd;
     font-size: 18px;
     color: $text;
     margin: 0 0 8px 0;
-    font-family: Georgia, 'Times New Roman', serif;
+    font-family: var(--font);
   }
 
   p {
@@ -1801,11 +1825,12 @@ $border: #ded9bd;
     margin-bottom: 18px;
 
     h3 {
-      font-family: Georgia, 'Times New Roman', serif;
+      font-family: var(--font);
+      //font-family: Georgia, 'Times New Roman', serif;
       font-size: 22px;
       color: $text;
       /* #00205c */
-      font-weight: 400;
+      font-weight: 500;
       margin: 0;
     }
 
@@ -1883,7 +1908,8 @@ $border: #ded9bd;
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: $white;
+      background: #D6CD8D;
+      //background: $white;
       border: none;
       display: flex;
       align-items: center;
@@ -1933,9 +1959,9 @@ $border: #ded9bd;
 
     /* Session title in serif typography */
     .sessionTitle {
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 14px;
-      font-weight: 600;
+      font-family: var(--font);
+      font-size: 20px;
+      font-weight: 800;
       color: $text;
       /* #00205c */
       margin: 0 0 4px 0;
@@ -1950,8 +1976,8 @@ $border: #ded9bd;
 
     /* Collection title & created date subtitle */
     .sessionDate {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 11px;
+      font-family: var(--font);
+      font-size: 17px;
       color: $gray;
       /* #707070 */
       margin-bottom: 8px;
@@ -2014,7 +2040,15 @@ $border: #ded9bd;
    -------------------------------------------------------------------------- */
 @media screen and (max-width: 1024px) {
   .heroSection {
-    padding: 40px 32px 48px 32px;
+    padding: 60px 35px 55px;
+
+    h1 {
+      font-size: 52px;
+    }
+
+    p {
+      font-size: 18px;
+    }
   }
 
   .contentWrapper {
@@ -2033,10 +2067,15 @@ $border: #ded9bd;
 
 @media screen and (max-width: 768px) {
   .heroSection {
-    padding: 32px 20px 40px 20px;
+    min-height: auto;
+    padding: 50px 30px;
 
     h1 {
-      font-size: 32px;
+      font-size: 46px;
+    }
+
+    p {
+      font-size: 18px;
     }
   }
 
@@ -2082,4 +2121,26 @@ $border: #ded9bd;
       }
     }
   }
+}
+
+@media screen and (max-width: 480px) {
+  .heroSection {
+    padding: 40px 20px;
+
+    h1 {
+      font-size: 36px;
+    }
+
+    p {
+      font-size: 16px;
+    }
+  }
+}
+
+.modalSessionTitle {
+  margin: 0;
+  color: #00205C;
+  font-family: var(--font);
+  font-size: 22px;
+  line-height: 1.25;
 }

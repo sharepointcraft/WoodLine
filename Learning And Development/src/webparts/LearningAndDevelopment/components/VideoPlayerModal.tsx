@@ -36,22 +36,28 @@ export const VideoPlayerModal: React.FC<IVideoPlayerModalProps> = ({ session, is
   return (
     <div className={styles.modalOverlay} onClick={onDismiss}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        {/* MODAL HEADER */}
+        {/* MODAL HEADER - retained but hidden for the video-first layout.
           <div className={styles.modalHeader}>
             <div className={styles.modalTitleArea}>
               <span className={styles.modalCategoryBadge}>{session.folderName}</span>
-              {/*
               <h2>{session.title}</h2>
-              */}
               {session.sessionTitle ? <h2>{session.sessionTitle}</h2> : null}
             </div>
           <button className={styles.modalCloseBtn} onClick={onDismiss} aria-label="Close modal">
             <Icon iconName="Cancel" />
           </button>
         </div>
+        */}
 
         {/* MODAL VIDEO PLAYER / PREVIEW */}
         <div className={styles.videoPlayerContainer}>
+          <button
+            className={`${styles.modalCloseBtn} ${styles.videoCloseBtn}`}
+            onClick={onDismiss}
+            aria-label="Close modal"
+          >
+            <Icon iconName="Cancel" />
+          </button>
           <video
             className={styles.videoElement}
             controls
@@ -68,6 +74,9 @@ export const VideoPlayerModal: React.FC<IVideoPlayerModalProps> = ({ session, is
 
           {/* MODAL DETAILS BODY */}
           <div className={styles.modalBody}>
+            {session.sessionTitle ? (
+              <h2 className={styles.modalSessionTitle}>{session.sessionTitle}</h2>
+            ) : null}
             <div className={styles.modalMetaRow}>
               {session.speakerName ? (
                 <div className={styles.metaChip}>
