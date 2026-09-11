@@ -389,7 +389,7 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                   </p>
 
                   {/* SEARCH ROW */}
-                  <div className={styles.searchRow}>
+                  {/* <div className={styles.searchRow}>
                     <div className={styles.searchBoxWrapper}>
                       <Icon iconName="Search" className={styles.searchIcon} />
                       <input
@@ -419,7 +419,7 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                         <Icon iconName="Refresh" /> Reset Filters
                       </button>
                     )}
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* ERROR DISPLAY */}
