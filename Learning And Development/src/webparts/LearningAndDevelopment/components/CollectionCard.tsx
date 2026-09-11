@@ -34,22 +34,18 @@ export const CollectionCard: React.FC<ICollectionCardProps> = ({
       <div className={styles.cardInner} onClick={handleClick}>
         {/* CARD FRONT */}
         <div className={styles.cardFront} onClick={handleClick}>
-          {/* <div className={styles.iconBox}>
+          <div className={styles.iconBox}>
             <Icon iconName="FolderOpen" />
-          </div> */}
+          </div>
 
           <div className={styles.cardContent}>
             <h3 className={styles.cardTitle}>
               {collection.title}
             </h3>
             <p className={styles.sessionCount}>
-              {collection.itemCount} {collection.itemCount === 1 ? 'Video' : 'Videoes'}
+              {collection.itemCount} {collection.itemCount === 1 ? 'Video' : 'Videos'}
             </p>
           </div>
-
-          {/* <div className={styles.flipText}>
-            Flip to explore
-          </div> */}
         </div>
 
         {/* CARD BACK */}
@@ -72,14 +68,14 @@ export const CollectionCard: React.FC<ICollectionCardProps> = ({
 
           <div className={styles.backAction} onClick={handleClick}>
             {/* Select to view video sessions &rarr; */}
-            view videos &rarr;
+            View Videos &rarr;
           </div>
         </div>
       </div>
     </div>
   );
 };
- 
+
 
 
 

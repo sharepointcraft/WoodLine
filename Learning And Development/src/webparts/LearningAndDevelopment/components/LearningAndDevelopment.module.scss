@@ -469,7 +469,8 @@
 // }
 
 .cardFront {
-  padding: 22px 24px;
+  // padding: 22px 24px;
+  padding: 28px;
   background: #FFFFFF;
   border: 1px solid #E4DEC9;
   display: flex;
@@ -513,8 +514,8 @@
 .cardTitle {
   margin: 0 0 6px 0;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   line-height: 1.25;
   color: #142747;
   display: -webkit-box;
@@ -541,7 +542,8 @@
 
 /* CARD BACK */
 .cardBack {
-  padding: 22px 24px;
+  // padding: 22px 24px;
+  padding: 28px;
   background: #124681;
   color: #FFFFFF;
   transform: rotateY(180deg);
@@ -601,8 +603,9 @@
 .backAction {
   margin-top: auto;
   font-family: Arial, Helvetica, sans-serif;
+  font-weight: 800;
   font-size: 11px;
-  font-weight: 700;
+  text-transform: uppercase;
   color: #D6CD8D;
 }
 
