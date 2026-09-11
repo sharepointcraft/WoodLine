@@ -2,17 +2,17 @@
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
   "version": "2.0",
   "bundles": {
-    "learnining-and-development-web-part": {
+    "learning-and-development-web-part": {
       "components": [
         {
-          "entrypoint": "./lib/webparts/learniningAndDevelopment/LearniningAndDevelopmentWebPart.js",
-          "manifest": "./src/webparts/learniningAndDevelopment/LearniningAndDevelopmentWebPart.manifest.json"
+          "entrypoint": "./lib/webparts/LearningAndDevelopment/LearningAndDevelopmentWebPart.js",
+          "manifest": "./src/webparts/LearningAndDevelopment/LearningAndDevelopmentWebPart.manifest.json"
         }
       ]
     }
   },
   "externals": {},
   "localizedResources": {
-    "LearniningAndDevelopmentWebPartStrings": "lib/webparts/learniningAndDevelopment/loc/{locale}.js"
+    "learningAndDevelopmentWebPartStrings": "lib/webparts/LearningAndDevelopment/loc/{locale}.js"
   }
 }
