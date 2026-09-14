@@ -251,7 +251,7 @@
   margin-top: 5px;
   width: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 20px;
 }
@@ -271,6 +271,7 @@
   font-size: 13px;
   line-height: 1.5;
   color: #687994;
+  white-space: nowrap;
 }
 
 /* Search bar inside library header */

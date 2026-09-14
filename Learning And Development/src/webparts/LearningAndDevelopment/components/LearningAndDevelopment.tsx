@@ -415,9 +415,14 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
               <div className={styles.libraryContent}>
                 <div className={styles.libraryHeader}>
                   <h2 className={styles.libraryTitle}>Learning Library</h2>
-                  <p className={styles.librarySubtitle}>
-                    Collections are alphabetised. Select an active letter to filter.
-                  </p>
+                  <div className={styles.libraryTitleRow}>
+                    <p className={styles.librarySubtitle}>
+                      Collections are alphabetised. Select an active letter to filter.
+                    </p>
+                    <div className={styles.flipHint}>
+                      Hover or select a card to flip
+                    </div>
+                  </div>
 
                   {/* SEARCH ROW */}
                   {/* <div className={styles.searchRow}>
@@ -451,9 +456,6 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                       </button>
                     )}
                   </div> */}
-                  <div className={styles.flipHint}>
-                    Hover or select a card to flip
-                  </div>
                 </div>
 
               {/* ERROR DISPLAY */}
