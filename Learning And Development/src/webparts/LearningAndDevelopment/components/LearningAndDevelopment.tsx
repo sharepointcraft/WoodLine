@@ -456,7 +456,6 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                   </div>
                 </div>
 
-              </div>
               {/* ERROR DISPLAY */}
               {error && (
                 <div className={styles.errorContainer}>
@@ -518,8 +517,8 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
             </div>
           </div>
         </section>
-    </>
-  ) : (
+      </>
+    ) : (
     /* =========================================================
        SESSION PAGE UI (REDESIGNED LEARNING SESSION DETAIL PAGE)
        ========================================================= */
@@ -660,16 +659,15 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
         )}
       </div>
     </div>
-  )
-}
+  )}
 
-{/* VIDEO PLAYER MODAL */ }
-<VideoPlayerModal
-  session={selectedVideoForModal}
-  isOpen={isModalOpen}
-  onDismiss={handleDismissModal}
-/>
-    </section >
+  {/* VIDEO PLAYER MODAL */}
+  <VideoPlayerModal
+    session={selectedVideoForModal}
+    isOpen={isModalOpen}
+    onDismiss={handleDismissModal}
+  />
+</section>
   );
 };
 
