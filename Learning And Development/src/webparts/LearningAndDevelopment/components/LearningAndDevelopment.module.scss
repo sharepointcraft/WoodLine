@@ -140,12 +140,14 @@
 }
 
 .FilterContainer {
+  width: 100%;
   min-height: 76px;
   padding: 12px 48px;
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  overflow-x: auto;
+  //overflow-x: auto;
+  overflow: hidden;
 }
 
 .FilterLabel {
@@ -160,7 +162,7 @@
 .alphabetTrack {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   white-space: nowrap;
 }
 
@@ -229,21 +231,39 @@
 
 .libraryHeader {
   margin-bottom: 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  // display: flex;
+  // flex-direction: column;
+  // gap: 6px;
 }
 
 .libraryTitle {
   margin: 0;
   font-family: var(--font);
-  font-size: 38px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 1.2;
   color: #00205C;
 }
 
+.libraryTitleRow {
+  margin-top: 5px;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
 .librarySubtitle {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: #687994;
+}
+
+
+.flipHint {
   margin: 0;
   font-family: var(--font);
   font-size: 13px;
@@ -449,34 +469,12 @@
   pointer-events: auto;
 }
 
-// .cardFront {
-//   padding: 22px 24px;
-//   background: #FFFFFF;
-//   border: 1px solid #E4DEC9;
-//   display: flex;
-//   flex-direction: column;
-//   justify-content: space-between;
-//   overflow: hidden;
-
-//   &::before {
-//     content: '';
-//     position: absolute;
-//     top: 0;
-//     left: 24px;
-//     right: 24px;
-//     height: 4px;
-//     background: #D6CD8D;
-//   }
-// }
-
 .cardFront {
-  // padding: 22px 24px;
   padding: 28px;
   background: #FFFFFF;
   border: 1px solid #E4DEC9;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   overflow: hidden;
   box-sizing: border-box;
 
@@ -504,29 +502,18 @@
   font-size: 20px;
 }
 
-// .cardContent {
-//   flex: 1;
-//   display: flex;
-//   flex-direction: column;
-//   justify-content: flex-end;
-//   margin: 12px 0;
-//   overflow: hidden;
-// }
-
 .cardContent {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  margin-top: auto;
-  margin-bottom: 30px;
   overflow: hidden;
 }
 
 .cardTitle {
-  margin: 0 0 6px 0;
+  margin: auto 0 6px 0;
   font-family: var(--font);
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.25;
   color: #142747;
   display: -webkit-box;
@@ -537,10 +524,6 @@
 }
 
 .sessionCount {
-  position: absolute;
-  left: 28px;
-  bottom: 28px;
-
   margin: 0;
   font-family: var(--font);
   font-size: 12px;
@@ -602,8 +585,8 @@
   line-height: 1.4;
   color: #e2e8f0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -618,8 +601,8 @@
 .backAction {
   margin-top: auto;
   font-family: var(--font);
-  font-weight: 800;
-  font-size: 12px;
+  font-weight: 700;
+  font-size: 11px;
   text-transform: uppercase;
   color: #D6CD8D;
 }
@@ -699,8 +682,8 @@
 .resourcesTitle {
   margin: 0 0 10px 0;
   font-family: var(--font);
-  font-size: 30px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 1.2;
   color: #00205C;
 }
@@ -773,7 +756,7 @@
   min-width: 0;
   font-family: var(--font);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   color: #00205C;
   overflow-wrap: break-word;
@@ -820,8 +803,8 @@
 .eventsTitle {
   margin: 0 0 16px 0;
   font-family: var(--font);
-  font-size: 29px;
-  font-weight: 800;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 1.2;
   color: #00205C;
 }
@@ -874,7 +857,7 @@
 .eventTitle {
   font-family: var(--font);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.3;
   color: #00205C;
 }

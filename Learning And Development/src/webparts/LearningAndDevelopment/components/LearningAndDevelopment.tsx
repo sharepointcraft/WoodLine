@@ -383,13 +383,15 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
               {/* LEFT COLUMN: LEARNING COLLECTIONS */}
               <div className={styles.libraryContent}>
                 <div className={styles.libraryHeader}>
-                  <h2 className={styles.libraryTitle}>Learning Collections</h2>
-                  <p className={styles.librarySubtitle}>
-                    Browse by department or topic to access curated training materials and session recordings.
-                  </p>
+                  <h2 className={styles.libraryTitle}>Learning Library</h2>
+                  <div className={styles.libraryTitleRow}>
+                    <p className={styles.librarySubtitle}>
+                      {/* Browse by department or topic to access curated training materials and session recordings. */}
+                      Collections are alphabetised. Select an active letter to filter.
+                    </p>
 
-                  {/* SEARCH ROW */}
-                  {/* <div className={styles.searchRow}>
+                    {/* SEARCH ROW */}
+                    {/* <div className={styles.searchRow}>
                     <div className={styles.searchBoxWrapper}>
                       <Icon iconName="Search" className={styles.searchIcon} />
                       <input
@@ -420,8 +422,12 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                       </button>
                     )}
                   </div> */}
-                </div>
+                    <div className={styles.flipHint}>
+                      Hover or select a card to flip
+                    </div>
+                  </div>
 
+                </div>
                 {/* ERROR DISPLAY */}
                 {error && (
                   <div className={styles.errorContainer}>
