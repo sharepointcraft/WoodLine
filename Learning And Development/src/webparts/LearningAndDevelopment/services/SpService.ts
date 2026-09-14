@@ -16,6 +16,7 @@ interface ISpFolderItem {
   Active?: boolean | string | number | null;
   Title?: string;
   Description?: string;
+  FlipDescription?: string;
   Comments?: string;
   Category?: string;
   Folder?: {
@@ -26,6 +27,7 @@ interface ISpFolderItem {
   ListItemAllFields?: {
     Title?: string;
     Description?: string;
+    FlipDescription?: string;
     Comments?: string;
     OData__Comments?: string;
     Category?: string;
@@ -115,22 +117,28 @@ export class SpService {
 
           if (activeFolders.length > 0) {
             collections = activeFolders.map((f, index) => {
+              const itemFields = f.ListItemAllFields || {};
               const folderName = f.FileLeafRef || f.Name || f.Folder?.Name || `Folder ${index + 1}`;
               const serverUrl = f.FileRef || f.ServerRelativeUrl || f.Folder?.ServerRelativeUrl || '';
               const description =
+                f.FlipDescription ||
+                itemFields.FlipDescription ||
                 f.Description ||
+                itemFields.Description ||
                 f.Comments ||
+                itemFields.Comments ||
+                itemFields.OData__Comments ||
                 `Collection of learning sessions for ${folderName}. Explore videos and training materials.`;
 
               return {
                 id: serverUrl || `col-${index}`,
-                title: f.Title || folderName,
+                title: f.Title || itemFields.Title || folderName,
                 description: description,
                 serverRelativeUrl: serverUrl,
                 itemCount: 0,
                 createdDate: this.formatDate(f.Created || f.TimeCreated || ''),
                 modifiedDate: this.formatDate(f.Modified || f.TimeLastModified || ''),
-                category: f.Category || this.getRandomCategory(folderName),
+                category: f.Category || itemFields.Category || this.getRandomCategory(folderName),
                 bannerUrl: this.getCategoryBanner(folderName, index),
                 author: 'L&D Team',
                 isActive: true
@@ -432,24 +440,35 @@ export class SpService {
 
     const cleanTitle = configuredTitle.trim();
 
-    // 1. Try exact configured title first
+    // 1. Try resolving title variations safely via resolveListTitle (using $filter query, avoiding direct 404s)
+    const resolvedTitle = await this.resolveListTitle(webUrl, cleanTitle);
+    if (resolvedTitle) {
+      return resolvedTitle;
+    }
+
+    // 2. Fallback: Check if cleanTitle or "Shared Documents" / "Documents" exists as BaseTemplate 101 library
     try {
       const res = await this.context.spHttpClient.get(
-        `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(cleanTitle)}')?$select=Title`,
+        `${webUrl}/_api/web/lists?$filter=BaseTemplate eq 101&$select=Title,RootFolder/Name&$expand=RootFolder`,
         SPHttpClient.configurations.v1
       );
       if (res.ok) {
         const data = await res.json();
-        return data.Title || cleanTitle;
+        if (data.value && Array.isArray(data.value) && data.value.length > 0) {
+          const match = data.value.find((item: { Title?: string; RootFolder?: { Name?: string } }) => {
+            const t = (item.Title || '').toLowerCase();
+            const r = (item.RootFolder?.Name || '').toLowerCase();
+            const c = cleanTitle.toLowerCase();
+            return t === c || r === c || c === 'shared documents' || c === 'documents';
+          });
+          if (match && match.Title) {
+            return match.Title;
+          }
+          return data.value[0].Title;
+        }
       }
     } catch (_err) {
-      // Continue resolution
-    }
-
-    // 2. Try resolving title variations (such as camelCase spaces) for configured list title
-    const resolvedTitle = await this.resolveListTitle(webUrl, cleanTitle);
-    if (resolvedTitle) {
-      return resolvedTitle;
+      // Ignore
     }
 
     return cleanTitle;
@@ -491,6 +510,9 @@ export class SpService {
         const itemFields = f.ListItemAllFields || {};
         const folderName = f.Name || `Folder ${index + 1}`;
         const description =
+          f.FlipDescription ||
+          itemFields.FlipDescription ||
+          f.Description ||
           itemFields.Description ||
           itemFields.Comments ||
           itemFields.OData__Comments ||
@@ -547,19 +569,30 @@ export class SpService {
           }
           return this.isFolderActive(f);
         })
-        .map((f, index) => ({
-          id: f.ServerRelativeUrl || `col-${index}`,
-          title: f.ListItemAllFields?.Title || f.Name || `Folder ${index + 1}`,
-          description: f.ListItemAllFields?.Description || `Learning modules and video tutorials for ${f.Name}.`,
-          serverRelativeUrl: f.ServerRelativeUrl || '',
-          itemCount: f.ItemCount || 0,
-          createdDate: this.formatDate(f.TimeCreated || ''),
-          modifiedDate: this.formatDate(f.TimeLastModified || ''),
-          category: this.getRandomCategory(f.Name || ''),
-          bannerUrl: this.getCategoryBanner(f.Name || '', index),
-          author: 'L&D Team',
-          isActive: true
-        }));
+        .map((f, index) => {
+          const itemFields = f.ListItemAllFields || {};
+          const description =
+            f.FlipDescription ||
+            itemFields.FlipDescription ||
+            itemFields.Description ||
+            f.Description ||
+            itemFields.Comments ||
+            `Learning modules and video tutorials for ${f.Name || 'Collection'}.`;
+
+          return {
+            id: f.ServerRelativeUrl || `col-${index}`,
+            title: itemFields.Title || f.Name || `Folder ${index + 1}`,
+            description: description,
+            serverRelativeUrl: f.ServerRelativeUrl || '',
+            itemCount: f.ItemCount || 0,
+            createdDate: this.formatDate(f.TimeCreated || ''),
+            modifiedDate: this.formatDate(f.TimeLastModified || ''),
+            category: this.getRandomCategory(f.Name || ''),
+            bannerUrl: this.getCategoryBanner(f.Name || '', index),
+            author: 'L&D Team',
+            isActive: true
+          };
+        });
     } catch {
       return [];
     }

@@ -415,44 +415,13 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
               <div className={styles.libraryContent}>
                 <div className={styles.libraryHeader}>
                   <h2 className={styles.libraryTitle}>Learning Library</h2>
-                  <p className={styles.librarySubtitle}>
-                    Collections are alphabetised. Select an active letter to filter.
-                  </p>
-
-                  {/* SEARCH ROW */}
-                  {/* <div className={styles.searchRow}>
-                    <div className={styles.searchBoxWrapper}>
-                      <Icon iconName="Search" className={styles.searchIcon} />
-                      <input
-                        type="text"
-                        className={styles.searchInput}
-                        placeholder="Search collections by title, description or category..."
-                        value={filterState.folderSearch}
-                        onChange={(e) => setFilterState((prev) => ({ ...prev, folderSearch: e.target.value }))}
-                      />
-                      {filterState.folderSearch && (
-                        <button
-                          type="button"
-                          className={styles.clearSearchBtn}
-                          onClick={() => setFilterState((prev) => ({ ...prev, folderSearch: '' }))}
-                        >
-                          <Icon iconName="Cancel" />
-                        </button>
-                      )}
+                  <div className={styles.libraryTitleRow}>
+                    <p className={styles.librarySubtitle}>
+                      Collections are alphabetised. Select an active letter to filter.
+                    </p>
+                    <div className={styles.flipHint}>
+                      Hover or select a card to flip
                     </div>
-
-                    {(filterState.folderSearch || filterState.folderAlpha !== 'All') && (
-                      <button
-                        type="button"
-                        className={styles.resetBtn}
-                        onClick={handleResetFilters}
-                      >
-                        <Icon iconName="Refresh" /> Reset Filters
-                      </button>
-                    )}
-                  </div> */}
-                  <div className={styles.flipHint}>
-                    Hover or select a card to flip
                   </div>
                 </div>
 
