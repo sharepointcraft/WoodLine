@@ -93,10 +93,10 @@ export class SpService {
         // Dynamically resolve the Document Library Display Title on this site
         const resolvedTitle = await this.getLibraryListTitle(webUrl, libraryTitle);
 
-        // Method 1: Query List Items where FSObjType eq 1 (Folders) with $expand=Folder
+        // Method 1: Query List Items where FSObjType eq 1 (Folders) with $expand=Folder,ListItemAllFields
         const itemsEndpoint = `${webUrl}/_api/web/lists/getByTitle('${encodeURIComponent(
           resolvedTitle
-        )}')/items?$filter=FSObjType eq 1&$expand=Folder`;
+        )}')/items?$filter=FSObjType eq 1&$expand=Folder,ListItemAllFields`;
 
         const response: SPHttpClientResponse = await this.context.spHttpClient.get(
           itemsEndpoint,
@@ -122,13 +122,7 @@ export class SpService {
               const serverUrl = f.FileRef || f.ServerRelativeUrl || f.Folder?.ServerRelativeUrl || '';
               const description =
                 f.FlipDescription ||
-                itemFields.FlipDescription ||
-                f.Description ||
-                itemFields.Description ||
-                f.Comments ||
-                itemFields.Comments ||
-                itemFields.OData__Comments ||
-                `Collection of learning sessions for ${folderName}. Explore videos and training materials.`;
+                itemFields.FlipDescription || ``;
 
               return {
                 id: serverUrl || `col-${index}`,
@@ -511,12 +505,7 @@ export class SpService {
         const folderName = f.Name || `Folder ${index + 1}`;
         const description =
           f.FlipDescription ||
-          itemFields.FlipDescription ||
-          f.Description ||
-          itemFields.Description ||
-          itemFields.Comments ||
-          itemFields.OData__Comments ||
-          `Collection of learning sessions for ${folderName}. Explore videos and training materials.`;
+          itemFields.FlipDescription || ``;
 
         return {
           id: f.ServerRelativeUrl || `col-${index}`,
@@ -573,11 +562,7 @@ export class SpService {
           const itemFields = f.ListItemAllFields || {};
           const description =
             f.FlipDescription ||
-            itemFields.FlipDescription ||
-            itemFields.Description ||
-            f.Description ||
-            itemFields.Comments ||
-            `Learning modules and video tutorials for ${f.Name || 'Collection'}.`;
+            itemFields.FlipDescription || ``;
 
           return {
             id: f.ServerRelativeUrl || `col-${index}`,
@@ -605,32 +590,32 @@ export class SpService {
     const fields = item.ListItemAllFields || {};
 
     const activeVal =
-      item.Active !== undefined
+      item.Active !== undefined && item.Active !== null
         ? item.Active
-        : fields.Active !== undefined
+        : fields.Active !== undefined && fields.Active !== null
           ? fields.Active
-          : fields.OData_Active !== undefined
+          : fields.OData_Active !== undefined && fields.OData_Active !== null
             ? fields.OData_Active
             : undefined;
 
     const folderName = item.FileLeafRef || item.Name || item.Folder?.Name || 'Folder';
     console.log(`[L&D Portal] Checking Active column for folder "${folderName}":`, activeVal);
 
-    // Rule: Exclude folder ONLY if Active column is explicitly false, "No", or 0!
+    // Rule: Folder is ONLY visible if Active column is explicitly checked (Yes / true / 1)!
     if (
-      activeVal === false ||
-      activeVal === 'false' ||
-      activeVal === 'False' ||
-      activeVal === 'No' ||
-      activeVal === 'no' ||
-      activeVal === 0 ||
-      activeVal === '0'
+      activeVal === true ||
+      activeVal === 1 ||
+      activeVal === '1' ||
+      activeVal === 'true' ||
+      activeVal === 'True' ||
+      activeVal === 'Yes' ||
+      activeVal === 'yes'
     ) {
-      return false; // Explicitly inactive
+      return true;
     }
 
-    // Include folder by default if Active is Yes/true OR if the column is not present (undefined/null)
-    return true;
+    // Unchecked / false / null / undefined / No / 0 -> Inactive! Do not show in UI.
+    return false;
   }
 
   /**

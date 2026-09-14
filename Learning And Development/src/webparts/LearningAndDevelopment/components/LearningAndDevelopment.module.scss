@@ -147,14 +147,14 @@
   padding: 12px 48px;
   display: flex;
   align-items: center;
+  gap: 16px;
   box-sizing: border-box;
-  //overflow-x: auto;
   overflow: hidden;
 }
 
 .FilterLabel {
   flex-shrink: 0;
-  margin-right: 16px;
+  margin-right: 0;
   font-family: var(--font);
   font-size: 14px;
   font-weight: 700;
@@ -164,8 +164,29 @@
 .alphabetTrack {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  padding: 6px 2px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 32, 92, 0.2) transparent;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 32, 92, 0.2);
+    border-radius: 4px;
+  }
 }
 
 .letterButton {
@@ -185,11 +206,15 @@
   justify-content: center;
   cursor: pointer;
   box-sizing: border-box;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 
   &:hover:not(:disabled):not(.active) {
     background: #00205C;
     color: #FFFFFF;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.94);
   }
 }
 
@@ -625,7 +650,7 @@
   font-family: var(--font);
   font-weight: 700;
   font-size: 11px;
-  text-transform: uppercase;
+  // text-transform: uppercase;
   color: var(--gold-primary);
 }
 
@@ -1422,7 +1447,23 @@
   }
 
   .FilterContainer {
-    padding: 12px 30px;
+    padding: 12px 24px;
+    min-height: 64px;
+    gap: 12px;
+  }
+
+  .FilterLabel {
+    font-size: 13px;
+  }
+
+  .alphabetTrack {
+    gap: 5px;
+  }
+
+  .letterButton {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
   }
 
   .libraryContainer {
@@ -1466,7 +1507,42 @@
   }
 
   .FilterContainer {
-    padding: 10px 20px;
+    padding: 10px 16px;
+    min-height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .FilterLabel {
+    font-size: 13px;
+  }
+
+  .alphabetTrack {
+    width: 100%;
+    gap: 6px;
+    padding: 6px 0;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .letterButton {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .libraryTitleRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .flipHint {
+    white-space: normal;
   }
 
   .libraryContainer {
