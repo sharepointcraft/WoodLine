@@ -451,220 +451,225 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                       </button>
                     )}
                   </div> */}
+                  <div className={styles.flipHint}>
+                    Hover or select a card to flip
+                  </div>
                 </div>
 
-                {/* ERROR DISPLAY */}
-                {error && (
-                  <div className={styles.errorContainer}>
-                    <Icon iconName="ErrorBadge" className={styles.errorIcon} />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                {/* LOADING SPINNER */}
-                {isLoading && (
-                  <div className={styles.loadingContainer}>
-                    <div className={styles.spinner} />
-                    <p>Loading learning library...</p>
-                  </div>
-                )}
-
-                {/* FOLDER COLLECTIONS GRID */}
-                {!isLoading && (
-                  <>
-                    {filteredCollections.length > 0 ? (
-                      <div className={styles.collectionGrid}>
-                        {filteredCollections.map((collection) => (
-                          <CollectionCard
-                            key={collection.id}
-                            collection={collection}
-                            onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className={styles.emptyStateContainer}>
-                        <Icon iconName="SearchData" className={styles.emptyIcon} />
-                        <h3>No Learning Library Found</h3>
-                        <p>No items match your search or letter filter.</p>
-                        <button
-                          type="button"
-                          className={styles.primaryBtn}
-                          onClick={handleResetFilters}
-                        >
-                          Reset Filters
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
               </div>
+              {/* ERROR DISPLAY */}
+              {error && (
+                <div className={styles.errorContainer}>
+                  <Icon iconName="ErrorBadge" className={styles.errorIcon} />
+                  <span>{error}</span>
+                </div>
+              )}
 
-              {/* RIGHT COLUMN: RESOURCES & UPCOMING EVENTS */}
-              <div className={styles.rightColumn}>
-                {/* RESOURCES & DOCUMENTS PANEL */}
-                <ResourcesPanel
-                  collections={collections}
-                  quickLinks={quickLinks}
-                  onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
-                />
+              {/* LOADING SPINNER */}
+              {isLoading && (
+                <div className={styles.loadingContainer}>
+                  <div className={styles.spinner} />
+                  <p>Loading learning library...</p>
+                </div>
+              )}
 
-                {/* UPCOMING EVENTS PANEL */}
-                <UpcomingEventsPanel events={upcomingEvents} />
-              </div>
-            </div>
-          </section>
-        </>
-      ) : (
-        /* =========================================================
-           SESSION PAGE UI (REDESIGNED LEARNING SESSION DETAIL PAGE)
-           ========================================================= */
-        <div className={styles.sessionSubpage}>
-          {/* 1. HERO HEADER SECTION - SOLID DEEP NAVY */}
-          <div className={styles.heroSection}>
-            {/* Pill-shaped Back Navigation Button */}
-            <button
-              type="button"
-              className={styles.backButton}
-              onClick={handleBackToCollections}
-            >
-              <span>&larr;</span> Back to Learning Library
-            </button>
-
-            {/* Collection Category Tag */}
-            <div className={styles.heroLabel}>
-              LEARNING LIBRARY
+              {/* FOLDER COLLECTIONS GRID */}
+              {!isLoading && (
+                <>
+                  {filteredCollections.length > 0 ? (
+                    <div className={styles.collectionGrid}>
+                      {filteredCollections.map((collection) => (
+                        <CollectionCard
+                          key={collection.id}
+                          collection={collection}
+                          onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className={styles.emptyStateContainer}>
+                      <Icon iconName="SearchData" className={styles.emptyIcon} />
+                      <h3>No Learning Library Found</h3>
+                      <p>No items match your search or letter filter.</p>
+                      <button
+                        type="button"
+                        className={styles.primaryBtn}
+                        onClick={handleResetFilters}
+                      >
+                        Reset Filters
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
-            {/* Collection Title (Serif Typography) */}
-            <h1>
-              {selectedCollection?.title}
-            </h1>
+            {/* RIGHT COLUMN: RESOURCES & UPCOMING EVENTS */}
+            <div className={styles.rightColumn}>
+              {/* RESOURCES & DOCUMENTS PANEL */}
+              <ResourcesPanel
+                collections={collections}
+                quickLinks={quickLinks}
+                onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+              />
 
-            {/* Collection Description */}
-            <p>
-              {selectedCollection?.description}
-            </p>
-
-            {/* Sessions Count Pill Badge */}
-            <div className={styles.sessionCount}>
-              <strong>
-                {filteredSessions.length}
-              </strong>
-              <span>
-                {filteredSessions.length === 1 ? 'Session available' : 'Sessions available'}
-              </span>
+              {/* UPCOMING EVENTS PANEL */}
+              <UpcomingEventsPanel events={upcomingEvents} />
             </div>
           </div>
+        </section>
+    </>
+  ) : (
+    /* =========================================================
+       SESSION PAGE UI (REDESIGNED LEARNING SESSION DETAIL PAGE)
+       ========================================================= */
+    <div className={styles.sessionSubpage}>
+      {/* 1. HERO HEADER SECTION - SOLID DEEP NAVY */}
+      <div className={styles.heroSection}>
+        {/* Pill-shaped Back Navigation Button */}
+        <button
+          type="button"
+          className={styles.backButton}
+          onClick={handleBackToCollections}
+        >
+          <span>&larr;</span> Back to Learning Library
+        </button>
 
-          {/* 2. MAIN CONTENT WRAPPER - WARM CREAM BACKGROUND */}
-          <div className={styles.contentWrapper}>
-            {/* FLOATING SESSION FILTER PANEL (PLACED AFTER HEADER) */}
-            <SessionFilters
-              filterState={filterState}
-              availableYears={availableYears}
-              availableMonths={availableMonths}
-              onYearChange={(year) => setFilterState((prev) => ({ ...prev, sessionYear: year }))}
-              onMonthChange={(month) => setFilterState((prev) => ({ ...prev, sessionMonth: month }))}
-              onSearchChange={(search) => setFilterState((prev) => ({ ...prev, sessionSearch: search }))}
-            />
-
-            {/* ERROR DISPLAY */}
-            {error && (
-              <div className={styles.errorContainer} style={{ marginTop: '20px' }}>
-                <Icon iconName="ErrorBadge" className={styles.errorIcon} />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* LOADING SPINNER */}
-            {isLoading && (
-              <div className={styles.loadingContainer}>
-                <div className={styles.spinner} />
-                <p>Loading video sessions...</p>
-              </div>
-            )}
-
-            {/* VIDEO SESSIONS GROUPED BY YEAR AND MONTH */}
-            {!isLoading && (
-              <>
-                {filteredSessions.length === 0 ? (
-                  <div className={styles.noResults}>
-                    {/* <h3>No sessions found</h3> */}
-                    <p>No sessions match the selected filters.</p>
-                  </div>
-                ) : (
-                  <div className={styles.sessionsContainer}>
-                    {yearKeys.map((year) => {
-                      const videosForYear = groupedByYear[year];
-                      const groupedByMonth = groupVideosByMonth(videosForYear);
-                      const monthKeys = Object.keys(groupedByMonth).sort(
-                        (a, b) => getMonthNumber(a) - getMonthNumber(b)
-                      );
-
-                      return (
-                        <div className={styles.yearSection} key={year}>
-                          {/* YEAR HEADING WITH FULL-WIDTH HORIZONTAL DIVIDER LINE */}
-                          <div className={styles.yearHeading}>
-                            <h2>{year}</h2>
-                            <div className={styles.yearLine} />
-                          </div>
-
-                          {/* YEAR TIMELINE CONTAINER: VERTICAL LINE ON THE LEFT + MONTHS ON THE RIGHT */}
-                          <div className={styles.yearTimelineContainer}>
-                            {/* VERTICAL LINE EXTENDING ALONGSIDE ALL MONTHS & CARDS */}
-                            <div className={styles.timelineVerticalLine} />
-
-                            {/* MONTH SECTIONS LIST */}
-                            <div className={styles.yearMonthsList}>
-                              {monthKeys.map((month) => {
-                                const monthVideos = groupedByMonth[month];
-                                return (
-                                  <div className={styles.monthSection} key={`${year}-${month}`}>
-                                    {/* MONTH HEADING WITH SESSIONS COUNT BADGE */}
-                                    <div className={styles.monthHeading}>
-                                      <h3>{month}</h3>
-                                      <span>
-                                        {monthVideos.length} {monthVideos.length === 1 ? 'SESSION' : 'SESSIONS'}
-                                      </span>
-                                    </div>
-
-                                    {/* MONTH SESSIONS: CLEAN 3-COLUMN CARD GRID */}
-                                    <div className={styles.monthContent}>
-                                      <div className={styles.sessionGrid}>
-                                        {monthVideos.map((video) => (
-                                          <SessionCard
-                                            key={video.id}
-                                            video={video}
-                                            collectionTitle={selectedCollection?.title}
-                                            onWatchVideo={handleWatchVideo}
-                                          />
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+        {/* Collection Category Tag */}
+        <div className={styles.heroLabel}>
+          LEARNING LIBRARY
         </div>
-      )}
 
-      {/* VIDEO PLAYER MODAL */}
-      <VideoPlayerModal
-        session={selectedVideoForModal}
-        isOpen={isModalOpen}
-        onDismiss={handleDismissModal}
-      />
-    </section>
+        {/* Collection Title (Serif Typography) */}
+        <h1>
+          {selectedCollection?.title}
+        </h1>
+
+        {/* Collection Description */}
+        <p>
+          {selectedCollection?.description}
+        </p>
+
+        {/* Sessions Count Pill Badge */}
+        <div className={styles.sessionCount}>
+          <strong>
+            {filteredSessions.length}
+          </strong>
+          <span>
+            {filteredSessions.length === 1 ? 'Session available' : 'Sessions available'}
+          </span>
+        </div>
+      </div>
+
+      {/* 2. MAIN CONTENT WRAPPER - WARM CREAM BACKGROUND */}
+      <div className={styles.contentWrapper}>
+        {/* FLOATING SESSION FILTER PANEL (PLACED AFTER HEADER) */}
+        <SessionFilters
+          filterState={filterState}
+          availableYears={availableYears}
+          availableMonths={availableMonths}
+          onYearChange={(year) => setFilterState((prev) => ({ ...prev, sessionYear: year }))}
+          onMonthChange={(month) => setFilterState((prev) => ({ ...prev, sessionMonth: month }))}
+          onSearchChange={(search) => setFilterState((prev) => ({ ...prev, sessionSearch: search }))}
+        />
+
+        {/* ERROR DISPLAY */}
+        {error && (
+          <div className={styles.errorContainer} style={{ marginTop: '20px' }}>
+            <Icon iconName="ErrorBadge" className={styles.errorIcon} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* LOADING SPINNER */}
+        {isLoading && (
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner} />
+            <p>Loading video sessions...</p>
+          </div>
+        )}
+
+        {/* VIDEO SESSIONS GROUPED BY YEAR AND MONTH */}
+        {!isLoading && (
+          <>
+            {filteredSessions.length === 0 ? (
+              <div className={styles.noResults}>
+                {/* <h3>No sessions found</h3> */}
+                <p>No sessions match the selected filters.</p>
+              </div>
+            ) : (
+              <div className={styles.sessionsContainer}>
+                {yearKeys.map((year) => {
+                  const videosForYear = groupedByYear[year];
+                  const groupedByMonth = groupVideosByMonth(videosForYear);
+                  const monthKeys = Object.keys(groupedByMonth).sort(
+                    (a, b) => getMonthNumber(a) - getMonthNumber(b)
+                  );
+
+                  return (
+                    <div className={styles.yearSection} key={year}>
+                      {/* YEAR HEADING WITH FULL-WIDTH HORIZONTAL DIVIDER LINE */}
+                      <div className={styles.yearHeading}>
+                        <h2>{year}</h2>
+                        <div className={styles.yearLine} />
+                      </div>
+
+                      {/* YEAR TIMELINE CONTAINER: VERTICAL LINE ON THE LEFT + MONTHS ON THE RIGHT */}
+                      <div className={styles.yearTimelineContainer}>
+                        {/* VERTICAL LINE EXTENDING ALONGSIDE ALL MONTHS & CARDS */}
+                        <div className={styles.timelineVerticalLine} />
+
+                        {/* MONTH SECTIONS LIST */}
+                        <div className={styles.yearMonthsList}>
+                          {monthKeys.map((month) => {
+                            const monthVideos = groupedByMonth[month];
+                            return (
+                              <div className={styles.monthSection} key={`${year}-${month}`}>
+                                {/* MONTH HEADING WITH SESSIONS COUNT BADGE */}
+                                <div className={styles.monthHeading}>
+                                  <h3>{month}</h3>
+                                  <span>
+                                    {monthVideos.length} {monthVideos.length === 1 ? 'SESSION' : 'SESSIONS'}
+                                  </span>
+                                </div>
+
+                                {/* MONTH SESSIONS: CLEAN 3-COLUMN CARD GRID */}
+                                <div className={styles.monthContent}>
+                                  <div className={styles.sessionGrid}>
+                                    {monthVideos.map((video) => (
+                                      <SessionCard
+                                        key={video.id}
+                                        video={video}
+                                        collectionTitle={selectedCollection?.title}
+                                        onWatchVideo={handleWatchVideo}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+{/* VIDEO PLAYER MODAL */ }
+<VideoPlayerModal
+  session={selectedVideoForModal}
+  isOpen={isModalOpen}
+  onDismiss={handleDismissModal}
+/>
+    </section >
   );
 };
 

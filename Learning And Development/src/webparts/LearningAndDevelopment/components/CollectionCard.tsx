@@ -43,9 +43,13 @@ export const CollectionCard: React.FC<ICollectionCardProps> = ({
               {collection.title}
             </h3>
             <p className={styles.sessionCount}>
-              {collection.itemCount} {collection.itemCount === 1 ? 'Video' : 'Videos'}
+              {collection.itemCount} {collection.itemCount === 1 ? 'Session' : 'Sessions'}
             </p>
+            <div className={styles.flipText}>
+              Flip to explore
+            </div>
           </div>
+
         </div>
 
         {/* CARD BACK */}
@@ -68,7 +72,7 @@ export const CollectionCard: React.FC<ICollectionCardProps> = ({
 
           <div className={styles.backAction} onClick={handleClick}>
             {/* Select to view video sessions &rarr; */}
-            View Videos &rarr;
+            View Sessions &rarr;
           </div>
         </div>
       </div>
