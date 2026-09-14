@@ -1121,7 +1121,7 @@
   cursor: pointer;
 
   &:hover {
-    color: #124681;
+    color: $gold;
   }
 }
 
@@ -1147,6 +1147,10 @@
   gap: 6px;
   font-size: 12px;
   color: #687994;
+
+  &:hover {
+    color: $gold;
+  }
 }
 
 .sessionActions {
@@ -1573,6 +1577,9 @@ $border: #ded9bd;
 
   /* Session count badge pill */
   .sessionCount {
+    position: static;
+    left: auto;
+    bottom: auto;
     width: auto;
     min-height: 0;
     margin-top: 28px;
@@ -1652,7 +1659,7 @@ $border: #ded9bd;
       font-size: 24px;
       color: $text;
       /* #00205c */
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .newestText {
@@ -1800,7 +1807,7 @@ $border: #ded9bd;
     margin-bottom: 24px;
 
     h2 {
-      font-family: var(--font);
+      font-family: Georgia, 'Times New Roman', serif;
       font-size: 36px;
       color: $text;
       /* #00205c */
@@ -1914,6 +1921,7 @@ $border: #ded9bd;
     box-shadow: 0 8px 18px rgba(0, 32, 92, 0.08);
   }
 
+
   /* Compact video thumbnail banner with blue gradient */
   .videoArea {
     width: 100%;
@@ -1995,7 +2003,7 @@ $border: #ded9bd;
     .sessionTitle {
       font-family: var(--font);
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 600;
       color: $text;
       /* #00205c */
       margin: 0 0 4px 0;
@@ -2004,17 +2012,17 @@ $border: #ded9bd;
       transition: color 0.15s ease;
 
       &:hover {
-        color: $navy-light;
+        color: #D6CD8D;
       }
     }
 
     /* Collection title & created date subtitle */
     .sessionDate {
       font-family: var(--font);
-      font-size: 17px;
+      font-size: 15px;
       color: $gray;
       /* #707070 */
-      margin-bottom: 8px;
+      // margin-bottom: 8px;
     }
 
     /* Views and Comments stats row matching design mockup */
@@ -2067,6 +2075,10 @@ $border: #ded9bd;
       }
     }
   }
+
+  &:is(:hover, :focus-within) .cardContent > .sessionTitle {
+    color: #806E22 !important;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -2086,7 +2098,7 @@ $border: #ded9bd;
   }
 
   .contentWrapper {
-    padding: 0 32px 48px 32px;
+    padding: 0 35px 48px 35px;
   }
 
   .monthSection {
@@ -2114,7 +2126,7 @@ $border: #ded9bd;
   }
 
   .contentWrapper {
-    padding: 0 20px 36px 20px;
+    padding: 0 30px 36px 30px;
   }
 
   .filterPanel {
