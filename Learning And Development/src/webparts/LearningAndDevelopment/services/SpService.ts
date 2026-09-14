@@ -159,7 +159,8 @@ export class SpService {
           );
           return {
             ...col,
-            itemCount: videoSessions.length
+            itemCount: videoSessions.length,
+            initialSessions: videoSessions
           };
         } catch {
           return col;

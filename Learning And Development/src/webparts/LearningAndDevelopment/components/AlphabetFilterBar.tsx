@@ -17,7 +17,7 @@ export const AlphabetFilterBar: React.FC<IAlphabetFilterBarProps> = ({
   return (
     <nav className={styles.Filter} aria-label="Alphabetical Filter">
       <div className={styles.FilterContainer}>
-        <span className={styles.FilterLabel}>Browse by A-Z</span>
+        <span className={styles.FilterLabel}>Browse A-Z</span>
         <div className={styles.alphabetTrack}>
           <button
             type="button"

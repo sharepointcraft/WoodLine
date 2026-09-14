@@ -39,6 +39,7 @@
   --cream-card: #F2EFDF;
   --text-muted: #687994;
   --border-light: #E4DEC9;
+  --sand: #d6cd8d;
 }
 
 /* =========================================================
@@ -67,7 +68,7 @@
   font-weight: 700;
   letter-spacing: 1.8px;
   line-height: 1.4;
-  color: #D6CD8D;
+  color: var(--gold-primary);
   text-transform: uppercase;
 }
 
@@ -98,12 +99,12 @@
 }
 
 .statCard {
-  width: 100px;
-  min-height: 80px;
-  padding: 8px 10px;
+  // width: 100px;
+  // min-height: 80px;
+  padding: 12px 18px;
   box-sizing: border-box;
-  border: 1px solid #D6CD8D;
-  border-radius: 11px;
+  border: 1px solid rgba(214, 205, 141, .5);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -112,11 +113,12 @@
 
 .statNumber {
   margin-bottom: 4px;
-  font-family: var(--font);
-  font-size: 30px;
+  // font-family: var(--font);
+  // font-size: 30px;
   font-weight: 400;
   line-height: 1;
-  color: #D6CD8D;
+  color: var(--gold-primary);
+  font: 30px Georgia;
 }
 
 .statLabel {
@@ -135,7 +137,7 @@
 .Filter {
   width: 100%;
   background: #FFFFFF;
-  border-bottom: 1px solid #D6CD8D;
+  border-bottom: 1px solid var(--gold-primary);
   box-sizing: border-box;
 }
 
@@ -169,7 +171,7 @@
   height: 38px;
   padding: 0;
   flex-shrink: 0;
-  border: 1px solid #D6CD8D;
+  border: 1px solid var(--gold-primary);
   border-radius: 50%;
   background: #FFFFFF;
   color: #00205C;
@@ -278,7 +280,7 @@
     width: 100%;
     padding: 10px 36px 10px 40px;
     border-radius: 10px;
-    border: 1px solid #D6CD8D;
+    border: 1px solid var(--gold-primary);
     background: #FFFFFF;
     font-size: 14px;
     outline: none;
@@ -311,7 +313,7 @@
   align-items: center;
   gap: 6px;
   background: #ffffff;
-  border: 1px solid #D6CD8D;
+  border: 1px solid var(--gold-primary);
   color: #00205C;
   padding: 10px 16px;
   border-radius: 10px;
@@ -465,7 +467,7 @@
 //     left: 24px;
 //     right: 24px;
 //     height: 4px;
-//     background: #D6CD8D;
+//     background: var(--gold-primary);
 //   }
 // }
 
@@ -487,7 +489,7 @@
     left: 24px;
     right: 24px;
     height: 4px;
-    background: #D6CD8D;
+    background: var(--gold-primary);
   }
 }
 
@@ -559,7 +561,7 @@
 .cardBack {
   // padding: 22px 24px;
   padding: 28px;
-  background: #124681;
+  background: linear-gradient(150deg, #00143c, #154b88);
   color: #FFFFFF;
   transform: rotateY(180deg);
   display: flex;
@@ -577,7 +579,7 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1.3px;
-  color: #D6CD8D;
+  color: var(--gold-primary);
   text-transform: uppercase;
 }
 
@@ -621,7 +623,7 @@
   font-weight: 800;
   font-size: 12px;
   text-transform: uppercase;
-  color: #D6CD8D;
+  color: var(--gold-primary);
 }
 
 /* =========================================================
@@ -728,7 +730,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #D6CD8D;
+    background: var(--gold-primary);
     border-radius: 4px;
   }
 }
@@ -751,7 +753,7 @@
 
   &:hover {
     background: #FFFFFF;
-    border-color: #D6CD8D;
+    border-color: var(--gold-primary);
   }
 }
 
@@ -761,7 +763,7 @@
   flex-shrink: 0;
   border-radius: 9px;
   background: #00205C;
-  color: #D6CD8D;
+  color: var(--gold-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -911,14 +913,14 @@
   color: #687994;
   background: #F7F5EA;
   border-radius: 10px;
-  border: 1px dashed #D6CD8D;
+  border: 1px dashed var(--gold-primary);
 }
 
 .emptyStateContainer {
   text-align: center;
   padding: 60px 20px;
   background: #FFFFFF;
-  border: 1px dashed #D6CD8D;
+  border: 1px dashed var(--gold-primary);
   border-radius: 17px;
 }
 
@@ -1013,7 +1015,7 @@
 
 .largeVideoIcon {
   font-size: 42px;
-  color: #D6CD8D;
+  color: var(--gold-primary);
   z-index: 1;
 }
 
@@ -1022,13 +1024,13 @@
   top: 10px;
   right: 10px;
   background: rgba(0, 32, 92, 0.85);
-  color: #D6CD8D;
+  color: var(--gold-primary);
   padding: 3px 8px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.5px;
-  border: 1px solid #D6CD8D;
+  border: 1px solid var(--gold-primary);
   z-index: 2;
 }
 
@@ -1052,7 +1054,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: #D6CD8D;
+  background: var(--gold-primary);
   color: #00205C;
   display: flex;
   align-items: center;
@@ -1189,7 +1191,7 @@
 
   &:hover {
     background: #FFFFFF;
-    border-color: #D6CD8D;
+    border-color: var(--gold-primary);
   }
 }
 
@@ -1519,10 +1521,10 @@ $border: #ded9bd;
   /* Pill outline button to navigate back to collections list */
   .backButton {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid var(--gold-primary);
     color: $white;
-    padding: 7px 18px;
-    border-radius: 9999px;
+    padding: 8px 12px;
+    border-radius: 999px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -1576,24 +1578,25 @@ $border: #ded9bd;
     width: auto;
     min-height: 0;
     margin-top: 28px;
-    padding: 7px 14px;
+    padding: 10px 14px;
     box-sizing: border-box;
     display: inline-flex;
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    border: 1px solid $gold;
+    border: 1px solid rgba(214, 205, 141, .5);
     border-radius: 8px;
     background: rgba(0, 32, 92, 0.55);
 
     strong {
       color: $gold;
-      margin-bottom: 0;
-      font-size: 25px;
+      // margin-bottom: 0;
+      // font-size: 25px;
       font-weight: 700;
-      font-family: var(--font);
+      // font-family: var(--font);
       line-height: normal;
+      font: 25px Georgia;
     }
 
     span {
@@ -1601,6 +1604,7 @@ $border: #ded9bd;
       font-size: 12px;
       font-weight: 400;
       line-height: normal;
+      padding-top: 5px;
     }
   }
 }
@@ -1704,7 +1708,8 @@ $border: #ded9bd;
         transition: border-color 0.2s ease;
 
         &:focus {
-          border-color: $navy-light;
+          border-color: var(--gold-primary);
+          box-shadow: 0 0 0 3px rgba(214, 205, 141, .22);
         }
       }
     }
@@ -1747,7 +1752,8 @@ $border: #ded9bd;
           }
 
           &:focus {
-            border-color: $navy-light;
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 3px rgba(214, 205, 141, .22);
           }
         }
       }
@@ -1759,11 +1765,12 @@ $border: #ded9bd;
    7.4 EMPTY STATE / NO RESULTS DISPLAY
    -------------------------------------------------------------------------- */
 .noResults {
-  text-align: center;
-  padding: 60px 20px;
+  text-align: left;
+  padding: 20px 20px;
   background: $white;
-  border-radius: 12px;
-  border: 1px dashed $border;
+  border-radius: 9px;
+  border: 1px solid #e4dfc8;
+  ;
 
   h3 {
     font-size: 18px;
@@ -1800,8 +1807,9 @@ $border: #ded9bd;
     margin-bottom: 24px;
 
     h2 {
-      font-family: var(--font);
-      font-size: 36px;
+      // font-family: var(--font);
+      // font-size: 36px;
+      font: 36px Georgia;
       color: $text;
       /* #00205c */
       font-weight: 400;

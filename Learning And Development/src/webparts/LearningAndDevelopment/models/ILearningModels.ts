@@ -10,6 +10,7 @@ export interface ILearningCollection {
   category?: string;
   author?: string;
   isActive?: boolean;
+  initialSessions?: IVideoSession[];
 }
 
 export interface IVideoSession {

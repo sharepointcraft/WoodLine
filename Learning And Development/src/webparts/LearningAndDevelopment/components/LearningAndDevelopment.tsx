@@ -105,9 +105,14 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
   const [filterState, setFilterState] = useState<IFilterState>({ ...INITIAL_FILTERS });
   const [selectedVideoForModal, setSelectedVideoForModal] = useState<IVideoSession | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [sessionsCache, setSessionsCache] = useState<{ [key: string]: IVideoSession[] }>({});
+  const hasLoadedOnce = React.useRef<boolean>(false);
 
-  const loadPortalData = useCallback(async (): Promise<void> => {
-    setIsLoading(true);
+  const loadPortalData = useCallback(async (isSilent: boolean = false): Promise<void> => {
+    if (!isSilent && !hasLoadedOnce.current) {
+      setIsLoading(true);
+    }
+    hasLoadedOnce.current = true;
     setError(undefined);
 
     try {
@@ -120,6 +125,17 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
       const fetchedQuickLinks = await spService.getResourcesAndDocuments(resourcesAndDocumentsListName, useMockData);
 
       const totalSessionsSum = fetchedCollections.reduce((sum, col) => sum + (col.itemCount || 0), 0);
+
+      // Pre-fill sessionsCache from collection.initialSessions if available
+      const newCache: { [key: string]: IVideoSession[] } = {};
+      fetchedCollections.forEach((col) => {
+        if (col.initialSessions && col.serverRelativeUrl) {
+          newCache[col.serverRelativeUrl] = col.initialSessions;
+        }
+      });
+      if (Object.keys(newCache).length > 0) {
+        setSessionsCache((prev) => ({ ...prev, ...newCache }));
+      }
 
       setCollections(fetchedCollections);
       setStats({
@@ -143,7 +159,7 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
   // Window focus listener to automatically re-sync video counts and new folders when user returns to tab
   useEffect(() => {
     const handleFocus = (): void => {
-      loadPortalData().catch(() => { });
+      loadPortalData(true).catch(() => { });
     };
     window.addEventListener('focus', handleFocus);
     return () => {
@@ -154,7 +170,6 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
   const handleSelectCollection = useCallback(async (collection: ILearningCollection): Promise<void> => {
     setSelectedCollection(collection);
     setViewMode('sessions');
-    setIsLoading(true);
     setError(undefined);
     setFilterState((prev) => ({
       ...prev,
@@ -162,6 +177,16 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
       sessionYear: 'All',
       sessionMonth: 'All'
     }));
+
+    // If cached sessions exist, load them immediately with ZERO spinner!
+    const cached = collection.serverRelativeUrl ? sessionsCache[collection.serverRelativeUrl] : undefined;
+    if (cached && cached.length > 0) {
+      setSessions(cached);
+    } else if (collection.initialSessions && collection.initialSessions.length > 0) {
+      setSessions(collection.initialSessions);
+    } else {
+      setIsLoading(true);
+    }
 
     try {
       const allowedExts = videoExtensions
@@ -175,13 +200,19 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
       );
 
       setSessions(fetchedSessions);
+      if (collection.serverRelativeUrl) {
+        setSessionsCache((prev) => ({
+          ...prev,
+          [collection.serverRelativeUrl]: fetchedSessions
+        }));
+      }
 
       // Automatically update live video session count for flip card & hero section stats
       const liveCount = fetchedSessions.length;
       setCollections((prevCollections) => {
         const updated = prevCollections.map((col) =>
           col.id === collection.id || col.serverRelativeUrl === collection.serverRelativeUrl
-            ? { ...col, itemCount: liveCount }
+            ? { ...col, itemCount: liveCount, initialSessions: fetchedSessions }
             : col
         );
         const newTotalSessions = updated.reduce((sum, c) => sum + (c.itemCount || 0), 0);
@@ -202,14 +233,14 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [videoExtensions, useMockData, spService]);
+  }, [videoExtensions, useMockData, spService, sessionsCache]);
 
   const handleBackToCollections = useCallback((): void => {
     setViewMode('collections');
     setSelectedCollection(undefined);
     setSessions([]);
-    // Automatically refresh portal data to pick up any future folder/video additions
-    loadPortalData().catch(() => { });
+    // Automatically refresh portal data in background to pick up any future folder/video additions without showing loader
+    loadPortalData(true).catch(() => { });
   }, [loadPortalData]);
 
   const filteredCollections = useMemo(() => {
@@ -383,9 +414,9 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
               {/* LEFT COLUMN: LEARNING COLLECTIONS */}
               <div className={styles.libraryContent}>
                 <div className={styles.libraryHeader}>
-                  <h2 className={styles.libraryTitle}>Learning Collections</h2>
+                  <h2 className={styles.libraryTitle}>Learning Library</h2>
                   <p className={styles.librarySubtitle}>
-                    Browse by department or topic to access curated training materials and session recordings.
+                    Collections are alphabetised. Select an active letter to filter.
                   </p>
 
                   {/* SEARCH ROW */}
@@ -434,7 +465,7 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                 {isLoading && (
                   <div className={styles.loadingContainer}>
                     <div className={styles.spinner} />
-                    <p>Loading learning collections...</p>
+                    <p>Loading learning library...</p>
                   </div>
                 )}
 
@@ -454,8 +485,8 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
                     ) : (
                       <div className={styles.emptyStateContainer}>
                         <Icon iconName="SearchData" className={styles.emptyIcon} />
-                        <h3>No Learning Collections Found</h3>
-                        <p>No collections match your search or letter filter.</p>
+                        <h3>No Learning Library Found</h3>
+                        <p>No items match your search or letter filter.</p>
                         <button
                           type="button"
                           className={styles.primaryBtn}
@@ -502,17 +533,17 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
 
             {/* Collection Category Tag */}
             <div className={styles.heroLabel}>
-              LEARNING COLLECTION
+              LEARNING LIBRARY
             </div>
 
             {/* Collection Title (Serif Typography) */}
             <h1>
-              {selectedCollection?.title || 'Associates'}
+              {selectedCollection?.title}
             </h1>
 
             {/* Collection Description */}
             <p>
-              {selectedCollection?.description || 'The Associate curriculum and town halls \u2014 modelling standards, alt data, management meetings and the expectations that come with the seat.'}
+              {selectedCollection?.description}
             </p>
 
             {/* Sessions Count Pill Badge */}
@@ -559,8 +590,8 @@ const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) =
               <>
                 {filteredSessions.length === 0 ? (
                   <div className={styles.noResults}>
-                    <h3>No sessions found</h3>
-                    <p>Try changing the year, month, or search criteria.</p>
+                    {/* <h3>No sessions found</h3> */}
+                    <p>No sessions match the selected filters.</p>
                   </div>
                 ) : (
                   <div className={styles.sessionsContainer}>
