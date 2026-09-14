@@ -1123,7 +1123,7 @@
   cursor: pointer;
 
   &:hover {
-    color: $gold;
+    color: var(--gold-primary);
   }
 }
 
@@ -1151,7 +1151,7 @@
   color: #687994;
 
   &:hover {
-    color: $gold;
+    color: var(--gold-primary);
   }
 }
 
@@ -1539,10 +1539,10 @@ $border: #ded9bd;
     margin-bottom: 24px;
     letter-spacing: 0.3px;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: $white;
-    }
+    // &:hover {
+    //   background: rgba(255, 255, 255, 0.12);
+    //   border-color: $white;
+    // }
   }
 
   /* Golden uppercase category tag above collection title */
