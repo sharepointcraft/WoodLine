@@ -1,4 +1,4 @@
-# learnining-and-development
+# learning-and-development
 
 ## Summary
 

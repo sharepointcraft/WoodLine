@@ -1,0 +1,663 @@
+import * as React from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import styles from './LearningAndDevelopment.module.scss';
+import { ILearningAndDevelopmentProps } from './ILearningAndDevelopmentProps';
+import {
+  ILearningCollection,
+  IVideoSession,
+  IFilterState,
+  ILearningStats,
+  IUpcomingEventItem,
+  IQuickLinkItem,
+  ViewMode
+} from '../models/ILearningModels';
+import { SpService } from '../services/SpService';
+import { HeroSection } from './HeroSection';
+import { AlphabetFilterBar } from './AlphabetFilterBar';
+import { CollectionCard } from './CollectionCard';
+import { ResourcesPanel } from './ResourcesPanel';
+import { UpcomingEventsPanel } from './UpcomingEventsPanel';
+import { SessionFilters } from './SessionFilters';
+import { SessionCard } from './SessionCard';
+import { VideoPlayerModal } from './VideoPlayerModal';
+import { Icon } from '@fluentui/react/lib/Icon';
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const getMonthNumber = (monthStr: string): number => {
+  const index = MONTH_NAMES.findIndex(
+    (m) => m.toLowerCase() === monthStr.toLowerCase()
+  );
+  return index === -1 ? 99 : index;
+};
+
+const getSessionYear = (session: IVideoSession): string => {
+  if (session.year && session.year !== 'Year not specified' && session.year !== 'All') {
+    return session.year;
+  }
+  if (session.createdDate) {
+    const parts = session.createdDate.split('-');
+    if (parts.length >= 1 && parts[0].length === 4) {
+      return parts[0];
+    }
+    const dateObj = new Date(session.createdDate);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj.getFullYear().toString();
+    }
+  }
+  return 'Year not specified';
+};
+
+const getSessionMonth = (session: IVideoSession): string => {
+  if (session.month && session.month !== 'Month not specified' && session.month !== 'All') {
+    return session.month;
+  }
+  if (session.createdDate) {
+    const parts = session.createdDate.split('-');
+    if (parts.length >= 2) {
+      const monthNum = parseInt(parts[1], 10);
+      if (monthNum >= 1 && monthNum <= 12) {
+        return MONTH_NAMES[monthNum - 1];
+      }
+    }
+    const dateObj = new Date(session.createdDate);
+    if (!isNaN(dateObj.getTime())) {
+      return MONTH_NAMES[dateObj.getMonth()];
+    }
+  }
+  return 'Month not specified';
+};
+
+const INITIAL_FILTERS: IFilterState = {
+  folderSearch: '',
+  folderAlpha: 'All',
+  folderSort: 'asc',
+  sessionSearch: '',
+  sessionYear: 'All',
+  sessionMonth: 'All',
+  sessionSort: 'newest'
+};
+
+const LearningAndDevelopment: React.FC<ILearningAndDevelopmentProps> = (props) => {
+  const {
+    libraryTitle = '',
+    resourcesAndDocumentsListName = '',
+    upcomingEventsListName = '',
+    useMockData,
+    videoExtensions,
+    context
+  } = props;
+
+  const spService = useMemo(() => new SpService(context), [context]);
+
+  const [collections, setCollections] = useState<ILearningCollection[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState<ILearningCollection | undefined>(undefined);
+  const [sessions, setSessions] = useState<IVideoSession[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<IUpcomingEventItem[]>([]);
+  const [quickLinks, setQuickLinks] = useState<IQuickLinkItem[]>([]);
+  const [stats, setStats] = useState<ILearningStats>({ totalCollections: 0, totalSessions: 0 });
+  const [viewMode, setViewMode] = useState<ViewMode>('collections');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [filterState, setFilterState] = useState<IFilterState>({ ...INITIAL_FILTERS });
+  const [selectedVideoForModal, setSelectedVideoForModal] = useState<IVideoSession | undefined>(undefined);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [sessionsCache, setSessionsCache] = useState<{ [key: string]: IVideoSession[] }>({});
+  const hasLoadedOnce = React.useRef<boolean>(false);
+
+  const loadPortalData = useCallback(async (isSilent: boolean = false): Promise<void> => {
+    if (!isSilent && !hasLoadedOnce.current) {
+      setIsLoading(true);
+    }
+    hasLoadedOnce.current = true;
+    setError(undefined);
+
+    try {
+      const allowedExts = videoExtensions
+        ? videoExtensions.split(',').map((s: string) => s.trim())
+        : ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v'];
+
+      const fetchedCollections = await spService.getTopLevelFolders(libraryTitle, useMockData, allowedExts);
+      const fetchedEvents = await spService.getUpcomingEvents(upcomingEventsListName, useMockData);
+      const fetchedQuickLinks = await spService.getResourcesAndDocuments(resourcesAndDocumentsListName, useMockData);
+
+      const totalSessionsSum = fetchedCollections.reduce((sum, col) => sum + (col.itemCount || 0), 0);
+
+      // Pre-fill sessionsCache from collection.initialSessions if available
+      const newCache: { [key: string]: IVideoSession[] } = {};
+      fetchedCollections.forEach((col) => {
+        if (col.initialSessions && col.serverRelativeUrl) {
+          newCache[col.serverRelativeUrl] = col.initialSessions;
+        }
+      });
+      if (Object.keys(newCache).length > 0) {
+        setSessionsCache((prev) => ({ ...prev, ...newCache }));
+      }
+
+      setCollections(fetchedCollections);
+      setStats({
+        totalCollections: fetchedCollections.length,
+        totalSessions: totalSessionsSum
+      });
+      setUpcomingEvents(fetchedEvents);
+      setQuickLinks(fetchedQuickLinks);
+      setIsLoading(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load Learning Collections from SharePoint library.';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  }, [libraryTitle, resourcesAndDocumentsListName, upcomingEventsListName, useMockData, videoExtensions, spService]);
+
+  useEffect(() => {
+    loadPortalData().catch(() => { });
+  }, [loadPortalData]);
+
+  // Window focus listener to automatically re-sync video counts and new folders when user returns to tab
+  useEffect(() => {
+    const handleFocus = (): void => {
+      loadPortalData(true).catch(() => { });
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [loadPortalData]);
+
+  const handleSelectCollection = useCallback(async (collection: ILearningCollection): Promise<void> => {
+    setSelectedCollection(collection);
+    setViewMode('sessions');
+    setError(undefined);
+    setFilterState((prev) => ({
+      ...prev,
+      sessionSearch: '',
+      sessionYear: 'All',
+      sessionMonth: 'All'
+    }));
+
+    // If cached sessions exist, load them immediately with ZERO spinner!
+    const cached = collection.serverRelativeUrl ? sessionsCache[collection.serverRelativeUrl] : undefined;
+    if (cached && cached.length > 0) {
+      setSessions(cached);
+    } else if (collection.initialSessions && collection.initialSessions.length > 0) {
+      setSessions(collection.initialSessions);
+    } else {
+      setIsLoading(true);
+    }
+
+    try {
+      const allowedExts = videoExtensions
+        ? videoExtensions.split(',').map((s: string) => s.trim())
+        : ['mp4', 'mov', 'wmv', 'avi', 'webm', 'mkv', 'm4v'];
+
+      const fetchedSessions = await spService.getVideoSessionsInFolder(
+        collection.serverRelativeUrl,
+        allowedExts,
+        useMockData
+      );
+
+      setSessions(fetchedSessions);
+      if (collection.serverRelativeUrl) {
+        setSessionsCache((prev) => ({
+          ...prev,
+          [collection.serverRelativeUrl]: fetchedSessions
+        }));
+      }
+
+      // Automatically update live video session count for flip card & hero section stats
+      const liveCount = fetchedSessions.length;
+      setCollections((prevCollections) => {
+        const updated = prevCollections.map((col) =>
+          col.id === collection.id || col.serverRelativeUrl === collection.serverRelativeUrl
+            ? { ...col, itemCount: liveCount, initialSessions: fetchedSessions }
+            : col
+        );
+        const newTotalSessions = updated.reduce((sum, c) => sum + (c.itemCount || 0), 0);
+        setStats({
+          totalCollections: updated.length,
+          totalSessions: newTotalSessions
+        });
+        return updated;
+      });
+
+      setSelectedCollection((prev) =>
+        prev ? { ...prev, itemCount: liveCount } : prev
+      );
+
+      setIsLoading(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load video sessions for this collection.';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  }, [videoExtensions, useMockData, spService, sessionsCache]);
+
+  const handleBackToCollections = useCallback((): void => {
+    setViewMode('collections');
+    setSelectedCollection(undefined);
+    setSessions([]);
+    // Automatically refresh portal data in background to pick up any future folder/video additions without showing loader
+    loadPortalData(true).catch(() => { });
+  }, [loadPortalData]);
+
+  const filteredCollections = useMemo(() => {
+    let list = [...collections];
+
+    if (filterState.folderSearch.trim()) {
+      const query = filterState.folderSearch.toLowerCase().trim();
+      list = list.filter(
+        (c) =>
+          c.title.toLowerCase().indexOf(query) !== -1 ||
+          (c.description && c.description.toLowerCase().indexOf(query) !== -1)
+      );
+    }
+
+    if (filterState.folderAlpha !== 'All') {
+      list = list.filter(
+        (c) =>
+          c.title &&
+          c.title.charAt(0).toUpperCase() === filterState.folderAlpha.toUpperCase()
+      );
+    }
+
+    list.sort((a, b) => {
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+      return filterState.folderSort === 'asc'
+        ? titleA.localeCompare(titleB)
+        : titleB.localeCompare(titleA);
+    });
+
+    return list;
+  }, [collections, filterState.folderSearch, filterState.folderAlpha, filterState.folderSort]);
+
+  const filteredSessions = useMemo(() => {
+    let list = [...sessions];
+
+    if (filterState.sessionSearch.trim()) {
+      const query = filterState.sessionSearch.toLowerCase().trim();
+      list = list.filter(
+        (s) =>
+          s.title.toLowerCase().indexOf(query) !== -1 ||
+          s.description.toLowerCase().indexOf(query) !== -1 ||
+          s.fileName.toLowerCase().indexOf(query) !== -1
+      );
+    }
+
+    if (filterState.sessionYear && filterState.sessionYear !== 'All') {
+      list = list.filter((s) => getSessionYear(s) === filterState.sessionYear);
+    }
+
+    if (filterState.sessionMonth && filterState.sessionMonth !== 'All') {
+      list = list.filter(
+        (s) => getSessionMonth(s).toLowerCase() === filterState.sessionMonth.toLowerCase()
+      );
+    }
+
+    list.sort((a, b) => {
+      if (filterState.sessionSort === 'title') {
+        return a.title.localeCompare(b.title);
+      }
+      const timeA = new Date(a.createdDate).getTime() || 0;
+      const timeB = new Date(b.createdDate).getTime() || 0;
+      return filterState.sessionSort === 'newest' ? timeB - timeA : timeA - timeB;
+    });
+
+    return list;
+  }, [sessions, filterState.sessionSearch, filterState.sessionYear, filterState.sessionMonth, filterState.sessionSort]);
+
+  // Distinct Years for Dropdown Filter
+  const availableYears = useMemo(() => {
+    const set = new Set<string>();
+    sessions.forEach((s) => {
+      const y = getSessionYear(s);
+      if (y && y !== 'Year not specified') set.add(y);
+    });
+    return Array.from(set).sort((a, b) => Number(b) - Number(a));
+  }, [sessions]);
+
+  // Distinct Months for Dropdown Filter
+  const availableMonths = useMemo(() => {
+    const set = new Set<string>();
+    sessions.forEach((s) => {
+      const m = getSessionMonth(s);
+      if (m && m !== 'Month not specified') set.add(m);
+    });
+    return Array.from(set).sort((a, b) => getMonthNumber(a) - getMonthNumber(b));
+  }, [sessions]);
+
+  // Group filtered sessions by Year
+  const groupedByYear = useMemo(() => {
+    const grouped: { [year: string]: IVideoSession[] } = {};
+    filteredSessions.forEach((session) => {
+      const year = getSessionYear(session);
+      if (!grouped[year]) {
+        grouped[year] = [];
+      }
+      grouped[year].push(session);
+    });
+    return grouped;
+  }, [filteredSessions]);
+
+  const yearKeys = useMemo(() => {
+    const keys = Object.keys(groupedByYear);
+    return keys.sort((a, b) => {
+      if (a === 'Year not specified') return 1;
+      if (b === 'Year not specified') return -1;
+      return Number(b) - Number(a);
+    });
+  }, [groupedByYear]);
+
+  const groupVideosByMonth = (videos: IVideoSession[]): { [month: string]: IVideoSession[] } => {
+    const grouped: { [month: string]: IVideoSession[] } = {};
+    videos.forEach((video) => {
+      const month = getSessionMonth(video);
+      if (!grouped[month]) {
+        grouped[month] = [];
+      }
+      grouped[month].push(video);
+    });
+    return grouped;
+  };
+
+  const activeLetters = useMemo(() => {
+    const set = new Set<string>();
+    collections.forEach((c) => {
+      if (c.title) {
+        set.add(c.title.charAt(0).toUpperCase());
+      }
+    });
+    return set;
+  }, [collections]);
+
+  const handleAlphaClick = useCallback((letter: string): void => {
+    setFilterState((prev) => ({
+      ...prev,
+      folderAlpha: prev.folderAlpha === letter ? 'All' : letter
+    }));
+  }, []);
+
+  const handleResetFilters = useCallback((): void => {
+    setFilterState({ ...INITIAL_FILTERS });
+  }, []);
+
+  const handleWatchVideo = useCallback((session: IVideoSession): void => {
+    setSelectedVideoForModal(session);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleDismissModal = useCallback((): void => {
+    setIsModalOpen(false);
+    setSelectedVideoForModal(undefined);
+  }, []);
+
+  const isAnalystSessionPage = selectedCollection?.title
+    ? selectedCollection.title.toLowerCase().indexOf('analyst') !== -1
+    : false;
+
+  return (
+    <section className={styles.learningAndDevelopment}>
+      {viewMode === 'collections' ? (
+        <>
+          {/* 1. HERO SECTION (COLLECTIONS PAGE) */}
+          <HeroSection stats={stats} title={props.title} description={props.description} />
+
+          {/* 2. ALPHABETICAL FILTER BAR */}
+          <AlphabetFilterBar
+            selectedLetter={filterState.folderAlpha}
+            activeLetters={activeLetters}
+            onSelectLetter={handleAlphaClick}
+          />
+
+          {/* 3. MAIN CONTENT SECTION */}
+          <section className={styles.librarySection}>
+            <div className={styles.libraryContainer}>
+              {/* LEFT COLUMN: LEARNING COLLECTIONS */}
+              <div className={styles.libraryContent}>
+                <div className={styles.libraryHeader}>
+                  <h2 className={styles.libraryTitle}>Learning Library</h2>
+                  <div className={styles.libraryTitleRow}>
+                    <p className={styles.librarySubtitle}>
+                      Collections are alphabetised. Select an active letter to filter.
+                    </p>
+                    <div className={styles.flipHint}>
+                      Hover or select a card to flip
+                    </div>
+                  </div>
+                </div>
+
+                {/* ERROR DISPLAY */}
+                {error && (
+                  <div className={styles.errorContainer}>
+                    <Icon iconName="ErrorBadge" className={styles.errorIcon} />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* LOADING SPINNER */}
+                {isLoading && (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.spinner} />
+                    <p>Loading learning library...</p>
+                  </div>
+                )}
+
+                {/* FOLDER COLLECTIONS GRID */}
+                {!isLoading && (
+                  <>
+                    {filteredCollections.length > 0 ? (
+                      <div className={styles.collectionGrid}>
+                        {filteredCollections.map((collection) => (
+                          <CollectionCard
+                            key={collection.id}
+                            collection={collection}
+                            onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className={styles.emptyStateContainer}>
+                        <Icon iconName="SearchData" className={styles.emptyIcon} />
+                        <h3>No Learning Library Found</h3>
+                        <p>No items match your search or letter filter.</p>
+                        <button
+                          type="button"
+                          className={styles.primaryBtn}
+                          onClick={handleResetFilters}
+                        >
+                          Reset Filters
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* RIGHT COLUMN: RESOURCES & UPCOMING EVENTS */}
+              <div className={styles.rightColumn}>
+                {/* RESOURCES & DOCUMENTS PANEL */}
+                <ResourcesPanel
+                  collections={collections}
+                  quickLinks={quickLinks}
+                  onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+                />
+
+                {/* UPCOMING EVENTS PANEL */}
+                <UpcomingEventsPanel events={upcomingEvents} />
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        /* =========================================================
+           SESSION PAGE UI (REDESIGNED LEARNING SESSION DETAIL PAGE)
+           ========================================================= */
+        <div className={styles.sessionSubpage}>
+          {/* 1. HERO HEADER SECTION - SOLID DEEP NAVY */}
+          <div className={styles.heroSection}>
+            {/* Pill-shaped Back Navigation Button */}
+            <button
+              type="button"
+              className={styles.backButton}
+              onClick={handleBackToCollections}
+            >
+              <span>&larr;</span> Back to Learning Library
+            </button>
+
+            {/* Collection Category Tag */}
+            <div className={styles.heroLabel}>
+              LEARNING LIBRARY
+            </div>
+
+            {/* Collection Title (Serif Typography) */}
+            <h1>
+              {selectedCollection?.title}
+            </h1>
+
+            {/* Collection Description */}
+            <p>
+              {selectedCollection?.description}
+            </p>
+
+            {/* Sessions Count Pill Badge */}
+            <div className={styles.sessionCount}>
+              <strong>
+                {filteredSessions.length}
+              </strong>
+              <span>
+                {filteredSessions.length === 1 ? 'Session available' : 'Sessions available'}
+              </span>
+            </div>
+          </div>
+
+          {/* 2. MAIN CONTENT WRAPPER - WARM CREAM BACKGROUND */}
+          <div className={styles.contentWrapper}>
+            {/* FLOATING SESSION FILTER PANEL (PLACED AFTER HEADER) */}
+            <SessionFilters
+              filterState={filterState}
+              availableYears={availableYears}
+              availableMonths={availableMonths}
+              onYearChange={(year) => setFilterState((prev) => ({ ...prev, sessionYear: year }))}
+              onMonthChange={(month) => setFilterState((prev) => ({ ...prev, sessionMonth: month }))}
+              onSearchChange={(search) => setFilterState((prev) => ({ ...prev, sessionSearch: search }))}
+            />
+
+            {/* MAIN SESSION BODY: GRID + RIGHT SIDEBAR IF ANALYSTS TRAINING */}
+            <div className={isAnalystSessionPage ? styles.sessionPageBodyWithSidebar : styles.sessionPageBody}>
+              <div className={styles.sessionMainContent}>
+                {/* ERROR DISPLAY */}
+                {error && (
+                  <div className={styles.errorContainer} style={{ marginTop: '20px' }}>
+                    <Icon iconName="ErrorBadge" className={styles.errorIcon} />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* LOADING SPINNER */}
+                {isLoading && (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.spinner} />
+                    <p>Loading video sessions...</p>
+                  </div>
+                )}
+
+                {/* VIDEO SESSIONS GROUPED BY YEAR AND MONTH */}
+                {!isLoading && (
+                  <>
+                    {filteredSessions.length === 0 ? (
+                      <div className={styles.noResults}>
+                        {/* <h3>No sessions found</h3> */}
+                        <p>No sessions match the selected filters.</p>
+                      </div>
+                    ) : (
+                      <div className={styles.sessionsContainer}>
+                        {yearKeys.map((year) => {
+                          const videosForYear = groupedByYear[year];
+                          const groupedByMonth = groupVideosByMonth(videosForYear);
+                          const monthKeys = Object.keys(groupedByMonth).sort(
+                            (a, b) => getMonthNumber(a) - getMonthNumber(b)
+                          );
+
+                          return (
+                            <div className={styles.yearSection} key={year}>
+                              {/* YEAR HEADING WITH FULL-WIDTH HORIZONTAL DIVIDER LINE */}
+                              <div className={styles.yearHeading}>
+                                <h2>{year}</h2>
+                                <div className={styles.yearLine} />
+                              </div>
+
+                              {/* YEAR TIMELINE CONTAINER: VERTICAL LINE ON THE LEFT + MONTHS ON THE RIGHT */}
+                              <div className={styles.yearTimelineContainer}>
+                                {/* VERTICAL LINE EXTENDING ALONGSIDE ALL MONTHS & CARDS */}
+                                <div className={styles.timelineVerticalLine} />
+
+                                {/* MONTH SECTIONS LIST */}
+                                <div className={styles.yearMonthsList}>
+                                  {monthKeys.map((month) => {
+                                    const monthVideos = groupedByMonth[month];
+                                    return (
+                                      <div className={styles.monthSection} key={`${year}-${month}`}>
+                                        {/* MONTH HEADING WITH SESSIONS COUNT BADGE */}
+                                        <div className={styles.monthHeading}>
+                                          <h3>{month}</h3>
+                                          <span>
+                                            {monthVideos.length} {monthVideos.length === 1 ? 'SESSION' : 'SESSIONS'}
+                                          </span>
+                                        </div>
+
+                                        {/* MONTH SESSIONS: CLEAN 3-COLUMN CARD GRID */}
+                                        <div className={styles.monthContent}>
+                                          <div className={styles.sessionGrid}>
+                                            {monthVideos.map((video) => (
+                                              <SessionCard
+                                                key={video.id}
+                                                video={video}
+                                                collectionTitle={selectedCollection?.title}
+                                                onWatchVideo={handleWatchVideo}
+                                              />
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* RIGHT SIDEBAR: RESOURCES & DOCUMENTS (ONLY IN ANALYSTS TRAINING SESSION PAGE) */}
+              {isAnalystSessionPage && (
+                <div className={styles.sessionRightSidebar}>
+                  <ResourcesPanel
+                    collections={collections}
+                    quickLinks={quickLinks}
+                    onSelectCollection={(col) => { handleSelectCollection(col).catch(() => { }); }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIDEO PLAYER MODAL */}
+      <VideoPlayerModal
+        session={selectedVideoForModal}
+        isOpen={isModalOpen}
+        onDismiss={handleDismissModal}
+      />
+    </section>
+  );
+};
+
+export default LearningAndDevelopment;

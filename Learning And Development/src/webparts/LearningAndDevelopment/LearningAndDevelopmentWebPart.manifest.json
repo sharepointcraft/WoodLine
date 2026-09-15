@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "1a862f44-a456-4a17-bbcf-720e8f15401b",
+  "alias": "LearningAndDevelopmentWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "TeamsPersonalApp",
+    "TeamsTab",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": {
+        "default": "Advanced"
+      },
+      "title": {
+        "default": "Learning & Development Center"
+      },
+      "description": {
+        "default": "Woodline Learning & Development Portal Web Part"
+      },
+      "officeFabricIconFontName": "Page",
+      "properties": {
+        "title": "Learning & Development Center",
+        "description": "Build knowledge, sharpen skills, and access the training, insights, and resources that support your development at Woodline.",
+        "libraryTitle": "Documents",
+        "resourcesAndDocumentsListName": "",
+        "upcomingEventsListName": "",
+        "useMockData": false,
+        "videoExtensions": "mp4,mov,wmv,avi,webm,mkv,m4v"
+      }
+    }
+  ]
+}
