@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import { Version } from '@microsoft/sp-core-library';
+import { DisplayMode, Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
   PropertyPaneTextField
@@ -13,6 +13,7 @@ import LearningAndDevelopment from './components/LearningAndDevelopment';
 import { ILearningAndDevelopmentProps } from './components/ILearningAndDevelopmentProps';
 
 export interface ILearningAndDevelopmentWebPartProps {
+  title: string;
   description: string;
   libraryTitle: string;
   resourcesAndDocumentsListName: string;
@@ -27,10 +28,15 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
   private _environmentMessage: string = '';
 
   public render(): void {
+    this.updateSharePointChrome();
+
     const element: React.ReactElement<ILearningAndDevelopmentProps> = React.createElement(
       LearningAndDevelopment,
       {
-        description: this.properties.description || 'Learning & Development Video Portal',
+        title: this.properties.title !== undefined ? this.properties.title : 'Learning & Development Center',
+        description: this.properties.description !== undefined && this.properties.description !== ''
+          ? this.properties.description
+          : 'Build knowledge, sharpen skills, and access the training, insights, and resources that support your development at Woodline.',
         libraryTitle: this.properties.libraryTitle !== undefined ? this.properties.libraryTitle : '',
         resourcesAndDocumentsListName: this.properties.resourcesAndDocumentsListName !== undefined ? this.properties.resourcesAndDocumentsListName : '',
         upcomingEventsListName: this.properties.upcomingEventsListName !== undefined ? this.properties.upcomingEventsListName : '',
@@ -44,6 +50,81 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
     );
 
     ReactDom.render(element, this.domElement);
+  }
+
+  private updateSharePointChrome(): void {
+    const styleId = 'woodline-hide-sharepoint-chrome';
+    let style = document.getElementById(styleId) as HTMLStyleElement | null;
+
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      document.head.appendChild(style);
+    }
+
+    style.innerHTML = `
+      /* Hide Page Command Bar & specific command bar buttons */
+      [data-automation-id="pageCommandBar"],
+      [data-automation-id="PageCommandBar"],
+      [class*="pageCommandBar"],
+      [class*="PageCommandBar"],
+      #spPageCanvasContent [class*="commandBar"],
+      #workbenchPageContent [class*="commandBar"],
+      [data-automation-id="pageCommandBarNewButton"],
+      [data-automation-id="promoteButton"],
+      [data-automation-id="pageSettingsButton"],
+      [data-automation-id="previewButton"],
+      [data-automation-id="analyticsButton"],
+      [data-automation-id*="pageCommandBarNewButton"],
+      [data-automation-id*="promoteButton"],
+      [data-automation-id*="pageSettingsButton"],
+      [data-automation-id*="previewButton"],
+      [data-automation-id*="analyticsButton"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Hide Page Social Bar (Like, Views, Add to favorites) */
+      [data-automation-id="pageSocialBar"],
+      [data-automation-id="socialBar"],
+      [class*="socialBar"],
+      [class*="pageSocialBar"],
+      [class*="socialBarContainer"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Hide Page Comments Wrapper (id="vpc_Page.CommentsWrapper.internal...") */
+      [id*="CommentsWrapper"],
+      [id*="Page.CommentsWrapper"],
+      [id^="vpc_Page.CommentsWrapper"],
+      [data-automation-id="commentsWrapper"],
+      [class*="commentsWrapper"],
+      [class*="CommentsWrapper"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+      }
+    `;
+  }
+
+  protected onDisplayModeChanged(oldDisplayMode: DisplayMode): void {
+    this.updateSharePointChrome();
+    this.render();
   }
 
   protected onInit(): Promise<void> {
@@ -94,6 +175,10 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
   }
 
   protected onDispose(): void {
+    const style = document.getElementById(
+      'woodline-hide-sharepoint-chrome'
+    );
+    style?.remove();
     ReactDom.unmountComponentAtNode(this.domElement);
   }
 
@@ -112,8 +197,15 @@ export default class LearningAndDevelopmentWebPart extends BaseClientSideWebPart
             {
               groupName: strings.BasicGroupName,
               groupFields: [
+                PropertyPaneTextField('title', {
+                  label: 'Hero Section Title',
+                  description: 'Title text displayed in the top hero section'
+                }),
                 PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                  label: 'Hero Section Description',
+                  multiline: true,
+                  rows: 3,
+                  description: 'Description paragraph text displayed in the top hero section'
                 }),
                 PropertyPaneTextField('libraryTitle', {
                   label: 'Document Library Title',

@@ -3,10 +3,15 @@ import { ILearningStats } from '../models/ILearningModels';
 import styles from './LearningAndDevelopment.module.scss';
 
 export interface IHeroSectionProps {
+  title?: string;
+  description?: string;
   stats: ILearningStats;
 }
 
-export const HeroSection: React.FC<IHeroSectionProps> = ({ stats }) => {
+export const HeroSection: React.FC<IHeroSectionProps> = ({ title, description, stats }) => {
+  const displayTitle = title || 'Learning & Development Center';
+  const displayDescription = description || 'Build knowledge, sharpen skills, and access the training, insights, and resources that support your development at Woodline.';
+
   return (
     <header className={styles.learningHero}>
       <div className={styles.heroContent}>
@@ -15,11 +20,11 @@ export const HeroSection: React.FC<IHeroSectionProps> = ({ stats }) => {
         </div>
 
         <h1 className={styles.title}>
-          Learning &amp; Development Center
+          {displayTitle}
         </h1>
 
         <p className={styles.description}>
-          Build knowledge, sharpen skills, and access the training, insights, and resources that support your development at Woodline.
+          {displayDescription}
         </p>
 
         <div className={styles.stats}>

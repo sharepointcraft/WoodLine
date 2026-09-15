@@ -3,6 +3,7 @@
 :global {
 
   #workbenchPageContent,
+  #spPageCanvasContent,
   .CanvasZone,
   .CanvasZoneContainer,
   .CanvasControl,
@@ -14,6 +15,41 @@
   [class*="ControlZone-control"] {
     max-width: 100% !important;
     width: 100% !important;
+    overflow: visible !important;
+  }
+
+  [data-automation-id="pageCommandBar"],
+  [data-automation-id="PageCommandBar"],
+  [class*="pageCommandBar"],
+  [class*="PageCommandBar"],
+  [data-automation-id="pageCommandBarNewButton"],
+  [data-automation-id="promoteButton"],
+  [data-automation-id="pageSettingsButton"],
+  [data-automation-id="previewButton"],
+  [data-automation-id="analyticsButton"],
+  [data-automation-id*="pageCommandBarNewButton"],
+  [data-automation-id*="promoteButton"],
+  [data-automation-id*="pageSettingsButton"],
+  [data-automation-id*="previewButton"],
+  [data-automation-id*="analyticsButton"],
+  [data-automation-id="pageSocialBar"],
+  [data-automation-id="socialBar"],
+  [class*="socialBar"],
+  [class*="pageSocialBar"],
+  [class*="socialBarContainer"],
+  [id*="CommentsWrapper"],
+  [id*="Page.CommentsWrapper"],
+  [id^="vpc_Page.CommentsWrapper"],
+  [data-automation-id="commentsWrapper"],
+  [class*="commentsWrapper"],
+  [class*="CommentsWrapper"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
   }
 }
 
@@ -675,15 +711,16 @@
   gap: 24px;
 
   /* Sticky entire right column */
-  position: sticky;
-  top: 20px;
-  align-self: flex-start;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 20px !important;
+  align-self: flex-start !important;
 
   /* Prevent the column from becoming wider than expected */
   box-sizing: border-box;
 
   /* Keep it above scrolling card content */
-  z-index: 10;
+  z-index: 10 !important;
 }
 
 .resourcesPanel {
@@ -1702,9 +1739,36 @@ $border: #ded9bd;
   width: 100%;
   box-sizing: border-box;
   padding: 0px 48px 60px;
-  //padding: 0 64px 80px 64px;
   /* 0 top padding: completely eliminates the gap above the filter panel */
   margin: 0 auto;
+}
+
+.sessionPageBodyWithSidebar {
+  width: 100%;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.sessionPageBody {
+  width: 100%;
+}
+
+.sessionMainContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionRightSidebar {
+  width: 375px;
+  flex-shrink: 0;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 20px !important;
+  align-self: flex-start !important;
+  box-sizing: border-box;
+  z-index: 10 !important;
 }
 
 /* --------------------------------------------------------------------------

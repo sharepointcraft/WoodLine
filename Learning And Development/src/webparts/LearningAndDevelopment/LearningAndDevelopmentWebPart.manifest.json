@@ -27,7 +27,8 @@
       },
       "officeFabricIconFontName": "Page",
       "properties": {
-        "description": "Learning & Development Center",
+        "title": "Learning & Development Center",
+        "description": "Build knowledge, sharpen skills, and access the training, insights, and resources that support your development at Woodline.",
         "libraryTitle": "Documents",
         "resourcesAndDocumentsListName": "",
         "upcomingEventsListName": "",
